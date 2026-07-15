@@ -37,8 +37,11 @@ onAuthStateChanged(auth, async (user) => {
   MGR = { uid: user.uid, ...data };
   document.getElementById("navName").textContent = MGR.name || user.email;
   document.getElementById("navRole").textContent = ROLES[MGR.role] || MGR.role;
+  document.getElementById("logoutBtn").style.display = "block";
   setupUI();
   loadData();
+  // Show dashboard section immediately
+  showSection("dashboard");
 });
 
 // ── Data listeners ───────────────────────────────────────────────
@@ -64,9 +67,9 @@ function renderDashboard() {
   const pending   = allRequests.filter(r => needsMyApproval(r)).length;
   const totalEmp  = employees.length;
 
-  document.getElementById("statOnLeave").textContent  = onLeave;
-  document.getElementById("statPending").textContent  = pending;
-  document.getElementById("statTotal").textContent    = totalEmp;
+  document.getElementById("statOnLeave").textContent  = onLeave || 0;
+  document.getElementById("statPending").textContent  = pending || 0;
+  document.getElementById("statTotal").textContent    = totalEmp || 0;
 
   // Per-shift breakdown
   const shiftEl = document.getElementById("shiftBreakdown");
