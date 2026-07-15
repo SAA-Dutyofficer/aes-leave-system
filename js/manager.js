@@ -46,8 +46,14 @@ onAuthStateChanged(auth, async (user) => {
 
 // ── Data listeners ───────────────────────────────────────────────
 function loadData() {
+  // Render dashboard immediately with zeros so no -- shows
+  renderDashboard();
+  renderEmployees();
+  renderApprovals();
+  renderAllLeave();
+
   onSnapshot(query(collection(db,"employees"), orderBy("name")), snap => {
-    employees = snap.docs.map(d => ({ id:d.id, ...d.data() }));
+    employees = snap.docs.map(d => ({ id:d.id, ...d.data() })).filter(e => !e.deleted);
     renderEmployees();
     renderDashboard();
   });
