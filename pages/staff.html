@@ -12,11 +12,13 @@
 
   <nav class="topnav">
     <div class="topnav-left">
-      <span class="nav-logo">🚒 AES Leave Management</span>
+      <span class="nav-logo">🚒 AES Leave</span>
     </div>
     <div class="topnav-right">
-      <span class="nav-username" id="navName">Loading...</span>
-      <span class="offline-dot" style="display:none">●</span>
+      <div class="nav-user-info">
+        <span class="nav-username" id="navName">Loading...</span>
+        <span class="nav-dept" id="navDept"></span>
+      </div>
       <button class="btn btn-ghost btn-sm" id="logoutBtn">Sign Out</button>
     </div>
   </nav>
@@ -41,6 +43,7 @@
     <!-- Overview -->
     <section class="page-section active" id="section-overview">
       <div class="section-title">My Leave Overview</div>
+
       <div class="balance-grid">
         <div class="balance-card bc-blue">
           <div class="bc-label">Entitlement</div>
@@ -67,7 +70,7 @@
       <div class="card">
         <div class="card-body">
           <div class="progress-label-row">
-            <span>Leave usage</span>
+            <span>Annual leave usage</span>
             <span id="progressPct">0%</span>
           </div>
           <div class="progress-track">
@@ -81,7 +84,7 @@
         <div class="card-head"><span>Upcoming & Recent Leave</span></div>
         <div class="card-body no-pad">
           <div id="upcomingLeave" class="simple-list">
-            <div class="list-empty">No upcoming leave scheduled.</div>
+            <div class="list-skeleton"><div class="skel"></div><div class="skel"></div></div>
           </div>
         </div>
       </div>
@@ -90,7 +93,21 @@
     <!-- Request -->
     <section class="page-section" id="section-request">
       <div class="section-title">Request Leave</div>
+
+      <!-- Interactive Calendar -->
       <div class="card">
+        <div class="card-head"><span>📅 Select Your Dates</span></div>
+        <div class="card-body cal-card-body">
+          <div id="leaveCalendar" class="leave-calendar">
+            <div class="cal-loading">Loading calendar…</div>
+          </div>
+          <div id="calSelInfo" class="cal-sel-info" style="display:none"></div>
+        </div>
+      </div>
+
+      <!-- Form -->
+      <div class="card">
+        <div class="card-head"><span>Request Details</span></div>
         <div class="card-body">
           <form id="leaveForm">
             <div class="field-group">
@@ -116,7 +133,7 @@
               </div>
             </div>
             <div class="days-preview" id="daysPreview" style="display:none">
-              <span id="daysCount">0</span> working day(s) selected
+              <span class="dp-num" id="daysCount">0</span> working day(s) selected
             </div>
             <div class="clash-warning" id="clashWarning" style="display:none">
               ⚠️ <span id="clashMsg"></span>
@@ -124,23 +141,11 @@
             <div class="balance-warning" id="balanceWarning" style="display:none"></div>
             <div class="field-group">
               <label>Notes <span class="optional">(optional)</span></label>
-              <textarea id="fNotes" placeholder="Any notes for your approving officer..."></textarea>
+              <textarea id="fNotes" placeholder="Any notes for your approving officer…"></textarea>
             </div>
             <div class="form-error" id="formError"></div>
-            <button type="submit" class="btn btn-primary btn-block">Submit Request</button>
+            <button type="submit" class="btn btn-primary btn-block" id="submitBtn">Submit Request</button>
           </form>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="card-head"><span>Your Working Days — This Month</span></div>
-        <div class="card-body">
-          <div id="miniCalendar" class="mini-calendar"></div>
-          <div class="calendar-legend">
-            <span class="leg-item"><span class="leg-dot leg-work"></span> Working day</span>
-            <span class="leg-item"><span class="leg-dot leg-off"></span> Off day</span>
-            <span class="leg-item"><span class="leg-dot leg-taken"></span> Leave taken</span>
-          </div>
         </div>
       </div>
     </section>
@@ -162,7 +167,7 @@
       <div class="card">
         <div class="card-body no-pad">
           <div id="historyList" class="request-list">
-            <div class="list-empty">Loading...</div>
+            <div class="list-empty">Loading…</div>
           </div>
         </div>
       </div>
@@ -175,7 +180,7 @@
         <div class="card-head"><span id="teamGroupLabel">Team Members</span></div>
         <div class="card-body no-pad">
           <div id="teamList" class="simple-list">
-            <div class="list-empty">Loading team...</div>
+            <div class="list-empty">Loading team…</div>
           </div>
         </div>
       </div>
