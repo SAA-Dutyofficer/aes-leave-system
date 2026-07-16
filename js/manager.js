@@ -64,6 +64,7 @@ function loadData() {
       renderDashboard();
       renderApprovals();
       renderAllLeave();
+      renderClashes();
     },
     err => console.error("leaveRequests error:", err)
   );
@@ -96,10 +97,21 @@ function renderDashboard() {
 // ── Approval logic ────────────────────────────────────────────────
 function needsMyApproval(r) {
   if (["Approved","Rejected","Cancelled"].includes(r.status)) return false;
-  if (MGR.role === "officer")    return !r.officerStatus && (MGR.groupId ? r.groupId===MGR.groupId : true);
-  if (MGR.role === "fire_admin") return r.officerStatus==="approved" && !r.adminStatus;
-  if (MGR.role === "head_ops")   return r.adminStatus==="approved" && !r.headOpsStatus;
+  // All roles can approve at any stage — no waiting for hierarchy
+  if (MGR.role === "officer") {
+    return !r.officerStatus && (MGR.groupId ? r.groupId===MGR.groupId : true);
+  }
+  if (MGR.role === "fire_admin") return !r.adminStatus;
+  if (MGR.role === "head_ops")   return !r.headOpsStatus;
   return false;
+}
+
+// A request is fully approved when all 3 levels have approved
+function checkFullyApproved(r, updates) {
+  const officerOk   = (updates.officerStatus  || r.officerStatus)  === "approved";
+  const adminOk     = (updates.adminStatus     || r.adminStatus)    === "approved";
+  const headOpsOk   = (updates.headOpsStatus   || r.headOpsStatus)  === "approved";
+  return officerOk && adminOk && headOpsOk;
 }
 
 function renderApprovals() {
@@ -156,17 +168,24 @@ window.approveRequest = async (reqId) => {
   if (clashCount>=4 && !confirm(`⚠️ ${clashCount} others from ${r.groupId} already on leave this period.\nApprove anyway?`)) return;
 
   const u = {};
-  let status = "Pending";
-  if (MGR.role==="officer")    { u.officerStatus="approved"; u.officerName=MGR.name; u.officerAt=serverTimestamp(); status="Approved (Officer)"; }
-  if (MGR.role==="fire_admin") { u.adminStatus="approved";   u.adminName=MGR.name;   u.adminAt=serverTimestamp();   status="Approved (Admin)"; }
-  if (MGR.role==="head_ops")   {
-    u.headOpsStatus="approved"; u.headOpsName=MGR.name; u.headOpsAt=serverTimestamp(); status="Approved";
+  if (MGR.role==="officer")    { u.officerStatus="approved";  u.officerName=MGR.name;  u.officerAt=serverTimestamp(); }
+  if (MGR.role==="fire_admin") { u.adminStatus="approved";    u.adminName=MGR.name;    u.adminAt=serverTimestamp(); }
+  if (MGR.role==="head_ops")   { u.headOpsStatus="approved";  u.headOpsName=MGR.name;  u.headOpsAt=serverTimestamp(); }
+
+  // Check if all 3 levels are now approved → set final status
+  if (checkFullyApproved(r, u)) {
+    u.status = "Approved";
     const emp = employees.find(e=>e.id===r.employeeId);
     if (emp && r.leaveType==="Annual Leave") {
       await updateDoc(doc(db,"employees",r.employeeId), { leaveUsed:(emp.leaveUsed||0)+(r.workDays||0) });
     }
+  } else {
+    // Set intermediate status label
+    if (MGR.role==="officer")    u.status = "Approved (Officer)";
+    if (MGR.role==="fire_admin") u.status = "Approved (Admin)";
+    if (MGR.role==="head_ops")   u.status = "Approved (Head Ops)";
   }
-  u.status = status;
+
   await updateDoc(doc(db,"leaveRequests",reqId), u);
   toast("✅ Approved!");
 };
@@ -190,6 +209,81 @@ document.getElementById("rejectForm").addEventListener("submit", async (e) => {
   document.getElementById("rejectModal").style.display="none";
   toast("Request rejected.");
 });
+
+// ── Clashes ───────────────────────────────────────────────────────
+function renderClashes() {
+  const today = todayStr();
+  const in60  = new Date(); in60.setDate(in60.getDate()+60);
+  const in60Str = in60.toISOString().split("T")[0];
+
+  // Today grid
+  const todayGrid = document.getElementById("clashTodayGrid");
+  if (todayGrid) {
+    todayGrid.innerHTML = SHIFT_GROUPS.map(g => {
+      const onLeave = allRequests.filter(r =>
+        r.status==="Approved" && r.groupId===g && r.startDate<=today && r.endDate>=today
+      );
+      const cls = onLeave.length>=4?"stat-danger":onLeave.length>=3?"stat-warn":"";
+      const names = onLeave.map(r=>r.employeeName).join(", ")||"None";
+      return `<div class="shift-stat ${cls}" style="min-width:120px">
+        <div class="ss-name">${g}</div>
+        <div class="ss-count">${onLeave.length}</div>
+        <div class="ss-label">on leave</div>
+        <div style="font-size:10px;color:#6b7280;margin-top:4px">${names}</div>
+      </div>`;
+    }).join("");
+  }
+
+  // Upcoming overlaps — find date ranges where 4+ from same shift overlap
+  const clashEl = document.getElementById("clashList");
+  if (!clashEl) return;
+
+  const upcoming = allRequests.filter(r =>
+    !["Rejected","Cancelled"].includes(r.status) &&
+    r.endDate >= today && r.startDate <= in60Str
+  );
+
+  // Group by shift and find overlaps
+  const clashes = [];
+  SHIFT_GROUPS.forEach(g => {
+    const groupReqs = upcoming.filter(r => r.groupId===g);
+    // Check each request against others in same group
+    groupReqs.forEach(r => {
+      const overlapping = groupReqs.filter(x =>
+        x.id !== r.id &&
+        !(x.endDate < r.startDate || x.startDate > r.endDate)
+      );
+      if (overlapping.length >= 3) { // 4+ including r itself
+        const key = `${g}-${r.startDate}-${r.endDate}`;
+        if (!clashes.find(c => c.key===key)) {
+          clashes.push({
+            key,
+            group: g,
+            count: overlapping.length + 1,
+            start: r.startDate,
+            end:   r.endDate,
+            names: [r.employeeName, ...overlapping.map(x=>x.employeeName)].filter((v,i,a)=>a.indexOf(v)===i)
+          });
+        }
+      }
+    });
+  });
+
+  if (!clashes.length) {
+    clashEl.innerHTML=`<div class="list-empty">✅ No overlapping leave detected in the next 60 days.</div>`;
+    return;
+  }
+
+  clashEl.innerHTML = clashes.map(c => `
+    <div class="list-item" style="flex-direction:column;align-items:flex-start;gap:4px">
+      <div style="display:flex;align-items:center;gap:8px;width:100%">
+        <span style="font-weight:700">${c.group} Shift</span>
+        <span class="status-badge ${c.count>=4?"sb-rejected":"sb-pending"}">${c.count} staff overlapping</span>
+        <span style="margin-left:auto;font-size:12px;color:#6b7280">${fmtDate(c.start)} → ${fmtDate(c.end)}</span>
+      </div>
+      <div style="font-size:12px;color:#6b7280">${c.names.join(", ")}</div>
+    </div>`).join("");
+}
 
 // ── All Leave ─────────────────────────────────────────────────────
 function renderAllLeave() {
