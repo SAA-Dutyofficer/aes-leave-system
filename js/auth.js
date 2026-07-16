@@ -1,11 +1,15 @@
 import { auth, db } from "./firebase.js";
-import { signInWithEmailAndPassword, signOut }
+import { signInWithEmailAndPassword, onAuthStateChanged }
   from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { doc, getDoc }
   from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-// Always sign out on login page — forces fresh login every time
-signOut(auth).catch(() => {});
+// If already logged in, redirect immediately
+onAuthStateChanged(auth, async (user) => {
+  if (!user) return;
+  const role = await getRole(user.uid);
+  redirect(role);
+});
 
 document.getElementById("loginForm").addEventListener("submit", async (e) => {
   e.preventDefault();
