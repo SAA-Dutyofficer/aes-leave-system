@@ -1,14 +1,19 @@
 import { auth, db } from "./firebase.js";
-import { signInWithEmailAndPassword, onAuthStateChanged }
+import { signInWithEmailAndPassword, onAuthStateChanged, setPersistence, browserLocalPersistence }
   from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { doc, getDoc }
   from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-// If already logged in, redirect immediately
+// Set persistence so login stays across sessions
+setPersistence(auth, browserLocalPersistence).catch(() => {});
+
+// If already logged in redirect straight away
 onAuthStateChanged(auth, async (user) => {
   if (!user) return;
-  const role = await getRole(user.uid);
-  redirect(role);
+  try {
+    const role = await getRole(user.uid);
+    redirect(role);
+  } catch { return; }
 });
 
 document.getElementById("loginForm").addEventListener("submit", async (e) => {
