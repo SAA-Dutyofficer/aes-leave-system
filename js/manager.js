@@ -16,7 +16,7 @@ function getSecondaryAuth() {
   const existing = getApps().find(a => a.name === "secondary");
   const app2 = existing || initializeApp({
     apiKey: "AIzaSyBuOsM7NyqWdZf0WrieMe_eFTDjgFvGI70",
-    authDomain: "aes-leave-system.firebaseapp.com",
+    authDomain: "aes-leave-system.web.app",
     projectId: "aes-leave-system",
     storageBucket: "aes-leave-system.firebasestorage.app",
     messagingSenderId: "358624876237",
