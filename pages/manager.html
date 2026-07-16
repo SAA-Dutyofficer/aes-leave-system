@@ -16,6 +16,7 @@
     <nav class="sidenav-links">
       <button class="sidenav-item active" data-section="dashboard">📊 Dashboard</button>
       <button class="sidenav-item" data-section="approvals">✅ Approvals</button>
+      <button class="sidenav-item" data-section="clashes">⚠️ Clashes</button>
       <button class="sidenav-item" data-section="leave">📋 All Leave</button>
       <button class="sidenav-item" data-section="employees">👥 Employees</button>
     </nav>
@@ -62,6 +63,27 @@
       <div class="section-title">Pending Approvals</div>
       <div id="approvalList" class="approval-list">
         <div class="list-empty">Loading...</div>
+      </div>
+    </section>
+
+    <!-- Clashes -->
+    <section class="page-section" id="section-clashes">
+      <div class="section-title">Shift Clashes & Overlap</div>
+
+      <div class="card">
+        <div class="card-head"><span>📍 On Leave Today — Per Shift</span></div>
+        <div class="card-body">
+          <div class="shift-breakdown" id="clashTodayGrid"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><span>📅 Upcoming Overlaps (Next 60 Days)</span></div>
+        <div class="card-body no-pad">
+          <div id="clashList" class="simple-list">
+            <div class="list-empty">Loading…</div>
+          </div>
+        </div>
       </div>
     </section>
 
