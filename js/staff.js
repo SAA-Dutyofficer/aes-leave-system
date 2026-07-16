@@ -271,9 +271,71 @@ function renderHistory() {
       <div class="rc-dates">📅 ${fmtDate(r.startDate)} → ${fmtDate(r.endDate)} · <strong>${r.workDays||0} day(s)</strong></div>
       ${r.notes ? `<div class="rc-notes">📝 ${r.notes}</div>` : ""}
       <div class="rc-approval-trail">${renderTrail(r)}</div>
-      ${r.status === "Pending" ? `<div class="rc-actions"><button class="btn btn-ghost btn-sm" onclick="cancelRequest('${r.id}')">Cancel Request</button></div>` : ""}
+      ${r.rejectionReason ? `<div class="rc-notes" style="color:#991b1b">❌ Reason: ${r.rejectionReason}</div>` : ""}
+      <div class="rc-actions">
+        ${r.status === "Pending" ? `
+          <button class="btn btn-ghost btn-sm" onclick="openEditModal('${r.id}')">✏️ Edit</button>
+          <button class="btn btn-ghost btn-sm" style="color:#991b1b" onclick="cancelRequest('${r.id}')">Cancel</button>` : ""}
+        ${(r.status === "Approved" || r.status === "Approved (Officer)" || r.status === "Approved (Admin)" || r.status === "Approved (Head Ops)") && !r.editRequested ? `
+          <button class="btn btn-ghost btn-sm" onclick="requestEdit('${r.id}')">✏️ Request Edit</button>` : ""}
+        ${r.editRequested && r.status !== "EditAllowed" ? `
+          <span style="font-size:12px;color:#c27803">⏳ Edit request pending approval</span>` : ""}
+        ${r.status === "EditAllowed" ? `
+          <button class="btn btn-ghost btn-sm" onclick="openEditModal('${r.id}')">✏️ Edit Now</button>` : ""}
+      </div>
     </div>`).join("");
 }
+
+// ── Edit modal ────────────────────────────────────────────────────
+window.openEditModal = (reqId) => {
+  const r = myRequests.find(x => x.id === reqId);
+  if (!r) return;
+  document.getElementById("editRequestId").value  = reqId;
+  document.getElementById("editStart").value      = r.startDate;
+  document.getElementById("editEnd").value        = r.endDate;
+  document.getElementById("editNotes").value      = r.notes || "";
+  document.getElementById("editLeaveType").value  = r.leaveType;
+  document.getElementById("editError").textContent = "";
+  document.getElementById("editModal").style.display = "flex";
+};
+
+document.getElementById("editModalClose").addEventListener("click",  () => document.getElementById("editModal").style.display = "none");
+document.getElementById("editModalCancel").addEventListener("click", () => document.getElementById("editModal").style.display = "none");
+
+document.getElementById("editForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const errEl    = document.getElementById("editError");
+  const reqId    = document.getElementById("editRequestId").value;
+  const start    = document.getElementById("editStart").value;
+  const end      = document.getElementById("editEnd").value;
+  const notes    = document.getElementById("editNotes").value.trim();
+  const leaveType= document.getElementById("editLeaveType").value;
+  errEl.textContent = "";
+  if (!start || !end || end < start) { errEl.textContent = "Invalid dates."; return; }
+  const days = countWorkDays(start, end, EMP.dept, EMP.rosterStart);
+  if (days === 0) { errEl.textContent = "No working days in selected range."; return; }
+  try {
+    await updateDoc(doc(db,"leaveRequests",reqId), {
+      startDate: start, endDate: end, workDays: days,
+      notes, leaveType,
+      status: "Pending",
+      editRequested: false,
+      officerStatus: null, officerName: null, officerAt: null,
+      adminStatus:   null, adminName:   null, adminAt:   null,
+      headOpsStatus: null, headOpsName: null, headOpsAt: null,
+    });
+    toast("✅ Request updated!");
+    document.getElementById("editModal").style.display = "none";
+  } catch(err) { errEl.textContent = "Failed to update: " + err.message; }
+});
+
+window.requestEdit = async (reqId) => {
+  if (!confirm("Request approval to edit this leave?")) return;
+  try {
+    await updateDoc(doc(db,"leaveRequests",reqId), { editRequested: true });
+    toast("Edit request sent — waiting for approval.");
+  } catch(err) { toast("Error: " + err.message, "error"); }
+};
 
 function renderTrail(r) {
   const steps = [
