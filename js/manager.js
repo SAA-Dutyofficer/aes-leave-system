@@ -141,6 +141,14 @@ function renderApprovals() {
         <button class="btn btn-success btn-sm" onclick="approveRequest('${r.id}')">✅ Approve</button>
         <button class="btn btn-danger btn-sm" onclick="openRejectModal('${r.id}')">❌ Reject</button>
       </div>
+      ${r.editRequested ? `
+      <div class="clash-alert" style="margin-top:8px">
+        ✏️ Staff has requested to edit this approved leave.
+        <div style="display:flex;gap:8px;margin-top:8px">
+          <button class="btn btn-success btn-sm" onclick="allowEdit('${r.id}')">Allow Edit</button>
+          <button class="btn btn-danger btn-sm" onclick="denyEdit('${r.id}')">Deny Edit</button>
+        </div>
+      </div>` : ""}
     </div>`;
   }).join("");
 }
@@ -209,6 +217,20 @@ document.getElementById("rejectForm").addEventListener("submit", async (e) => {
   document.getElementById("rejectModal").style.display="none";
   toast("Request rejected.");
 });
+
+window.allowEdit = async (reqId) => {
+  try {
+    await updateDoc(doc(db,"leaveRequests",reqId), { status:"EditAllowed", editRequested:false });
+    toast("✅ Edit allowed — staff can now edit their request.");
+  } catch(err) { toast("Error: "+err.message,"error"); }
+};
+
+window.denyEdit = async (reqId) => {
+  try {
+    await updateDoc(doc(db,"leaveRequests",reqId), { editRequested:false });
+    toast("Edit request denied.");
+  } catch(err) { toast("Error: "+err.message,"error"); }
+};
 
 // ── Clashes ───────────────────────────────────────────────────────
 function renderClashes() {
