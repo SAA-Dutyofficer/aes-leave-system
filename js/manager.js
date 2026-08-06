@@ -510,12 +510,149 @@ window.deleteEmp = async (empId, name) => {
   })
 );
 
+// ── My Leave ─────────────────────────────────────────────────────
+let MY_EMP = null, myOwnRequests = [];
+
+function initMyLeave() {
+  if (!MGR.uid) return;
+  // Listen to own employee record
+  onSnapshot(doc(db,"employees",MGR.uid), snap => {
+    if (!snap.exists()) return;
+    MY_EMP = { id:snap.id, ...snap.data() };
+    renderMyBalance();
+  });
+  // Listen to own requests
+  onSnapshot(
+    query(collection(db,"leaveRequests"), where("employeeId","==",MGR.uid), orderBy("createdAt","desc")),
+    snap => {
+      myOwnRequests = snap.docs.map(d=>({id:d.id,...d.data()}));
+      renderMyHistory();
+    }
+  );
+}
+
+function renderMyBalance() {
+  if (!MY_EMP) return;
+  const cs  = MY_EMP.cycleStart || todayStr();
+  const ce  = cycleEnd(cs);
+  const ent = MY_EMP.entitlement || 0;
+  const used = myOwnRequests.filter(r =>
+    r.leaveType==="Annual Leave" && r.status==="Approved" &&
+    r.startDate>=cs && r.startDate<=ce
+  ).reduce((s,r)=>s+(r.workDays||0),0);
+  const unpaid = myOwnRequests.filter(r =>
+    r.leaveType==="Unpaid Leave" && r.status==="Approved" &&
+    r.startDate>=cs && r.startDate<=ce
+  ).reduce((s,r)=>s+(r.workDays||0),0);
+  const remaining = Math.max(0, ent-used);
+  const pct = ent ? Math.min(100,Math.round(used/ent*100)) : 0;
+
+  document.getElementById("myBcEntitlement").textContent = ent;
+  document.getElementById("myBcUsed").textContent        = used;
+  document.getElementById("myBcRemaining").textContent   = remaining;
+  document.getElementById("myBcUnpaid").textContent      = unpaid;
+  document.getElementById("myProgressFill").style.width  = pct+"%";
+  document.getElementById("myProgressPct").textContent   = pct+"%";
+  document.getElementById("myCycleInfo").textContent     = `Cycle: ${fmtDate(cs)} – ${fmtDate(ce)}`;
+}
+
+function updateMyPreview() {
+  if (!MY_EMP) return;
+  const start = document.getElementById("myFStartDate").value;
+  const end   = document.getElementById("myFEndDate").value;
+  const type  = document.getElementById("myFLeaveType").value;
+  if (!start||!end||end<start) { document.getElementById("myDaysPreview").style.display="none"; return; }
+
+  const s = new Date(start+"T00:00:00"), e = new Date(end+"T00:00:00");
+  let days = 0, cur = new Date(s);
+  while (cur<=e) {
+    const ds = cur.toISOString().split("T")[0];
+    const wd = cur.getDay();
+    if (MY_EMP.dept==="GD" ? (wd>=1&&wd<=4) : isShiftDay(ds)) days++;
+    cur.setDate(cur.getDate()+1);
+  }
+  document.getElementById("myDaysCount").textContent = days;
+  document.getElementById("myDaysPreview").style.display = "block";
+
+  if (type==="Annual Leave") {
+    const cs=MY_EMP.cycleStart||todayStr(), ce=cycleEnd(cs);
+    const used=myOwnRequests.filter(r=>r.leaveType==="Annual Leave"&&r.status==="Approved"&&r.startDate>=cs&&r.startDate<=ce).reduce((s,r)=>s+(r.workDays||0),0);
+    const rem=(MY_EMP.entitlement||0)-used;
+    const bw=document.getElementById("myBalanceWarning");
+    if (days>rem){bw.style.display="block";bw.textContent=`⚠️ Only ${rem} days remaining.`;}
+    else bw.style.display="none";
+  } else document.getElementById("myBalanceWarning").style.display="none";
+}
+
+function isShiftDay(ds) {
+  if (!MY_EMP?.rosterStart) return false;
+  const d=new Date(ds+"T00:00:00"), r=new Date(MY_EMP.rosterStart+"T00:00:00");
+  const diff=Math.round((d-r)/86400000);
+  const pos=((diff%8)+8)%8;
+  return pos<4;
+}
+
+async function submitMyLeave(e) {
+  e.preventDefault();
+  if (!MY_EMP) { toast("No employee record found. Ask admin to add you as an employee.","error"); return; }
+  const errEl=document.getElementById("myFormError");
+  const btn=e.target.querySelector("button[type=submit]");
+  errEl.textContent=""; btn.disabled=true; btn.textContent="Submitting…";
+
+  const start   = document.getElementById("myFStartDate").value;
+  const end     = document.getElementById("myFEndDate").value;
+  const type    = document.getElementById("myFLeaveType").value;
+  const notes   = document.getElementById("myFNotes").value.trim();
+  const days    = parseInt(document.getElementById("myDaysCount").textContent)||0;
+
+  if (!start||!end||end<start){errEl.textContent="Invalid dates.";btn.disabled=false;btn.textContent="Submit Request";return;}
+  if (days===0){errEl.textContent="No working days in selected range.";btn.disabled=false;btn.textContent="Submit Request";return;}
+
+  try {
+    await addDoc(collection(db,"leaveRequests"),{
+      employeeId:MGR.uid, employeeName:MY_EMP.name||MGR.name,
+      groupId:MY_EMP.groupId||null, dept:MY_EMP.dept||"GD",
+      leaveType:type, startDate:start, endDate:end, workDays:days, notes,
+      status:"Pending",
+      officerStatus:null,officerName:null,officerAt:null,
+      adminStatus:null,adminName:null,adminAt:null,
+      headOpsStatus:null,headOpsName:null,headOpsAt:null,
+      createdAt:serverTimestamp()
+    });
+    toast("✅ Leave request submitted!");
+    document.getElementById("myLeaveForm").reset();
+    document.getElementById("myDaysPreview").style.display="none";
+    document.getElementById("myBalanceWarning").style.display="none";
+  } catch(err){errEl.textContent="Failed: "+err.message;}
+  finally{btn.disabled=false;btn.textContent="Submit Request";}
+}
+
+function renderMyHistory() {
+  const el=document.getElementById("myHistoryList");
+  if (!myOwnRequests.length){el.innerHTML=`<div class="list-empty">No requests yet.</div>`;return;}
+  el.innerHTML=myOwnRequests.map(r=>`
+    <div class="request-card">
+      <div class="rc-head"><span class="rc-type">${r.leaveType}</span>${statusBadge(r.status)}</div>
+      <div class="rc-dates">📅 ${fmtDate(r.startDate)} → ${fmtDate(r.endDate)} · <strong>${r.workDays||0} day(s)</strong></div>
+      ${r.notes?`<div class="rc-notes">📝 ${r.notes}</div>`:""}
+    </div>`).join("");
+}
+
 // ── Navigation ────────────────────────────────────────────────────
 function initUI() {
-  // Nav clicks
+  // Desktop sidebar nav
   document.querySelectorAll(".sidenav-item").forEach(btn => {
     btn.addEventListener("click", () => {
       document.querySelectorAll(".sidenav-item").forEach(b=>b.classList.remove("active"));
+      btn.classList.add("active");
+      showSection(btn.dataset.section);
+    });
+  });
+
+  // Mobile bottom nav
+  document.querySelectorAll(".mgr-bnav-item").forEach(btn => {
+    btn.addEventListener("click", () => {
+      document.querySelectorAll(".mgr-bnav-item").forEach(b=>b.classList.remove("active"));
       btn.classList.add("active");
       showSection(btn.dataset.section);
     });
@@ -540,13 +677,22 @@ function initUI() {
   // Hide add button for officers
   if (MGR.role==="officer") document.getElementById("addEmpBtn").style.display="none";
 
+  // My Leave form
+  document.getElementById("myFStartDate").addEventListener("change", updateMyPreview);
+  document.getElementById("myFEndDate").addEventListener("change",   updateMyPreview);
+  document.getElementById("myFLeaveType").addEventListener("change", updateMyPreview);
+  document.getElementById("myLeaveForm").addEventListener("submit",  submitMyLeave);
+
   // Show dashboard by default
   showSection("dashboard");
+  initMyLeave();
 }
 
 function showSection(id) {
   document.querySelectorAll(".page-section").forEach(s=>s.classList.remove("active"));
   document.querySelectorAll(".sidenav-item").forEach(b=>b.classList.remove("active"));
+  document.querySelectorAll(".mgr-bnav-item").forEach(b=>b.classList.remove("active"));
   document.getElementById("section-"+id)?.classList.add("active");
   document.querySelector(`.sidenav-item[data-section="${id}"]`)?.classList.add("active");
+  document.querySelector(`.mgr-bnav-item[data-section="${id}"]`)?.classList.add("active");
 }
