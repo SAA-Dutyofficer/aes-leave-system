@@ -19,6 +19,7 @@
       <button class="sidenav-item" data-section="clashes">⚠️ Clashes</button>
       <button class="sidenav-item" data-section="leave">📋 All Leave</button>
       <button class="sidenav-item" data-section="employees">👥 Employees</button>
+      <button class="sidenav-item" data-section="myleave">🏖️ My Leave</button>
     </nav>
     <div class="sidenav-user">
       <div class="su-name" id="navName">--</div>
@@ -26,6 +27,28 @@
       <button class="btn btn-ghost btn-sm" id="logoutBtn">Sign Out</button>
     </div>
   </aside>
+
+  <!-- Mobile Bottom Nav -->
+  <nav class="mgr-bottomnav">
+    <button class="mgr-bnav-item active" data-section="dashboard">
+      <span class="bnav-icon">📊</span><span>Dashboard</span>
+    </button>
+    <button class="mgr-bnav-item" data-section="approvals">
+      <span class="bnav-icon">✅</span><span>Approvals</span>
+    </button>
+    <button class="mgr-bnav-item" data-section="clashes">
+      <span class="bnav-icon">⚠️</span><span>Clashes</span>
+    </button>
+    <button class="mgr-bnav-item" data-section="leave">
+      <span class="bnav-icon">📋</span><span>All Leave</span>
+    </button>
+    <button class="mgr-bnav-item" data-section="employees">
+      <span class="bnav-icon">👥</span><span>Staff</span>
+    </button>
+    <button class="mgr-bnav-item" data-section="myleave">
+      <span class="bnav-icon">🏖️</span><span>My Leave</span>
+    </button>
+  </nav>
 
   <!-- Main -->
   <main class="manager-main">
@@ -123,6 +146,96 @@
       </div>
       <div id="empList" class="emp-list">
         <div class="list-empty">Loading...</div>
+      </div>
+    </section>
+
+    <!-- My Leave -->
+    <section class="page-section" id="section-myleave">
+      <div class="section-title">My Leave</div>
+
+      <div class="balance-grid">
+        <div class="balance-card bc-blue">
+          <div class="bc-label">Entitlement</div>
+          <div class="bc-value" id="myBcEntitlement">--</div>
+          <div class="bc-sub">days this cycle</div>
+        </div>
+        <div class="balance-card bc-orange">
+          <div class="bc-label">Used</div>
+          <div class="bc-value" id="myBcUsed">--</div>
+          <div class="bc-sub">days taken</div>
+        </div>
+        <div class="balance-card bc-green">
+          <div class="bc-label">Remaining</div>
+          <div class="bc-value" id="myBcRemaining">--</div>
+          <div class="bc-sub">days left</div>
+        </div>
+        <div class="balance-card bc-purple">
+          <div class="bc-label">Unpaid</div>
+          <div class="bc-value" id="myBcUnpaid">--</div>
+          <div class="bc-sub">days unpaid</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-body">
+          <div class="progress-label-row">
+            <span>Annual leave usage</span>
+            <span id="myProgressPct">0%</span>
+          </div>
+          <div class="progress-track">
+            <div class="progress-fill" id="myProgressFill" style="width:0%"></div>
+          </div>
+          <div class="cycle-info" id="myCycleInfo">Cycle: --</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><span>Request Leave</span></div>
+        <div class="card-body">
+          <form id="myLeaveForm">
+            <div class="field-group">
+              <label>Leave Type</label>
+              <select id="myFLeaveType">
+                <option value="Annual Leave">Annual Leave</option>
+                <option value="Unpaid Leave">Unpaid Leave</option>
+                <option value="Sick Leave">Sick Leave</option>
+                <option value="Emergency Leave">Emergency Leave</option>
+                <option value="Compassionate Leave">Compassionate Leave</option>
+                <option value="National Service">National Service</option>
+                <option value="Exam Leave">Exam Leave</option>
+              </select>
+            </div>
+            <div class="field-row">
+              <div class="field-group">
+                <label>Start Date</label>
+                <input type="date" id="myFStartDate" required/>
+              </div>
+              <div class="field-group">
+                <label>End Date</label>
+                <input type="date" id="myFEndDate" required/>
+              </div>
+            </div>
+            <div class="days-preview" id="myDaysPreview" style="display:none">
+              <span id="myDaysCount">0</span> working day(s) selected
+            </div>
+            <div class="balance-warning" id="myBalanceWarning" style="display:none"></div>
+            <div class="field-group">
+              <label>Notes <span class="optional">(optional)</span></label>
+              <textarea id="myFNotes" placeholder="Any notes..."></textarea>
+            </div>
+            <div class="form-error" id="myFormError"></div>
+            <button type="submit" class="btn btn-primary btn-block">Submit Request</button>
+          </form>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><span>My Leave History</span></div>
+        <div class="card-body no-pad">
+          <div id="myHistoryList" class="request-list">
+            <div class="list-empty">No requests yet.</div>
+          </div>
+        </div>
       </div>
     </section>
 
