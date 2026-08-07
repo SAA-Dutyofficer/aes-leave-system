@@ -38,8 +38,10 @@ onAuthStateChanged(auth, async (user) => {
       window.location.href = "../index.html"; return;
     }
     MGR = { uid: user.uid, ...data };
-    document.getElementById("navName").textContent = MGR.name || user.email;
-    document.getElementById("navRole").textContent = ROLES[MGR.role] || MGR.role;
+    document.getElementById("navName").textContent       = MGR.name || user.email;
+    document.getElementById("navRole").textContent       = ROLES[MGR.role] || MGR.role;
+    document.getElementById("mobileNavName").textContent = MGR.name || user.email;
+    document.getElementById("mobileNavRole").textContent = ROLES[MGR.role] || MGR.role;
     initUI();
     loadData();
   } catch(err) {
@@ -659,10 +661,20 @@ function initUI() {
     });
   });
 
-  // Logout
+  // Logout (desktop + mobile)
   document.getElementById("logoutBtn").addEventListener("click", () =>
     signOut(auth).then(() => window.location.href="../index.html")
   );
+  document.getElementById("mobileLogoutBtn").addEventListener("click", () =>
+    signOut(auth).then(() => window.location.href="../index.html")
+  );
+  // Change password (mobile button opens same modal)
+  document.getElementById("mobileChdPwBtn").addEventListener("click", () => {
+    document.getElementById("changePwForm").reset();
+    document.getElementById("changePwError").textContent   = "";
+    document.getElementById("changePwSuccess").textContent = "";
+    document.getElementById("changePwModal").style.display = "flex";
+  });
 
   // Filters
   document.getElementById("leaveFilter").addEventListener("change", renderAllLeave);
