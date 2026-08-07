@@ -404,3 +404,15 @@ textarea { resize: vertical; min-height: 72px; }
 .su-btn:hover { background:rgba(255,255,255,.2); }
 .su-btn-signout { background:rgba(220,38,38,.3); border-color:rgba(220,38,38,.5); }
 .su-btn-signout:hover { background:rgba(220,38,38,.5); }
+
+/* ── Manager Mobile Header ────────────────────────────────────── */
+.mgr-mobile-header { display:none; background:#1e3a5f; color:white; padding:10px 16px; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:99; }
+.mgr-mobile-name { font-weight:700; font-size:14px; }
+.mgr-mobile-role { font-size:11px; color:rgba(255,255,255,.6); }
+.mgr-mobile-actions { display:flex; gap:8px; }
+.mgr-mobile-btn { background:rgba(255,255,255,.15); color:white; border:1px solid rgba(255,255,255,.2); }
+.mgr-mobile-btn:hover { background:rgba(255,255,255,.25); }
+.mgr-mobile-signout { background:rgba(220,38,38,.4); border-color:rgba(220,38,38,.6); }
+@media (max-width:768px) {
+  .mgr-mobile-header { display:flex; }
+}
