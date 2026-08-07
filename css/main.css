@@ -398,3 +398,9 @@ textarea { resize: vertical; min-height: 72px; }
   .mgr-bottomnav { display:flex; }
   .manager-main { padding-bottom:80px; }
 }
+
+/* ── Sidebar buttons ──────────────────────────────────────────── */
+.su-btn { width:100%; margin-top:6px; justify-content:center; background:rgba(255,255,255,.1); color:white; border:1px solid rgba(255,255,255,.2); }
+.su-btn:hover { background:rgba(255,255,255,.2); }
+.su-btn-signout { background:rgba(220,38,38,.3); border-color:rgba(220,38,38,.5); }
+.su-btn-signout:hover { background:rgba(220,38,38,.5); }

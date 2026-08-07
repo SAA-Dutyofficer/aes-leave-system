@@ -1,6 +1,7 @@
 // js/staff.js — AES Leave Management System (v2)
 import { auth, db } from "./firebase.js";
-import { onAuthStateChanged, signOut }
+import { onAuthStateChanged, signOut, EmailAuthProvider,
+         reauthenticateWithCredential, updatePassword }
   from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { collection, doc, getDoc, addDoc, updateDoc, onSnapshot,
          query, where, orderBy, serverTimestamp }
@@ -383,6 +384,41 @@ function setupListeners() {
   document.getElementById("logoutBtn").addEventListener("click", () =>
     signOut(auth).then(() => window.location.href = "../index.html")
   );
+
+  // Change password
+  document.getElementById("staffChangePwBtn").addEventListener("click", () => {
+    document.getElementById("staffChangePwForm").reset();
+    document.getElementById("staffChangePwError").textContent   = "";
+    document.getElementById("staffChangePwSuccess").textContent = "";
+    document.getElementById("staffChangePwModal").style.display = "flex";
+  });
+  ["staffChangePwClose","staffChangePwCancel"].forEach(id =>
+    document.getElementById(id)?.addEventListener("click", () =>
+      document.getElementById("staffChangePwModal").style.display = "none"
+    )
+  );
+  document.getElementById("staffChangePwForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const errEl  = document.getElementById("staffChangePwError");
+    const succEl = document.getElementById("staffChangePwSuccess");
+    errEl.textContent=""; succEl.textContent="";
+    const current = document.getElementById("staffCurrentPw").value;
+    const newPw   = document.getElementById("staffNewPw").value;
+    const confirm = document.getElementById("staffConfirmPw").value;
+    if (newPw.length < 6) { errEl.textContent="Min 6 characters."; return; }
+    if (newPw !== confirm) { errEl.textContent="Passwords don't match."; return; }
+    try {
+      const user = auth.currentUser;
+      const cred = EmailAuthProvider.credential(user.email, current);
+      await reauthenticateWithCredential(user, cred);
+      await updatePassword(user, newPw);
+      succEl.textContent = "✅ Password updated!";
+      document.getElementById("staffChangePwForm").reset();
+    } catch(err) {
+      errEl.textContent = err.code==="auth/wrong-password"||err.code==="auth/invalid-credential"
+        ? "Current password is incorrect." : "Error: "+err.message;
+    }
+  });
   document.getElementById("leaveForm").addEventListener("submit", submitRequest);
 
   // Sync manual date inputs back to calendar selection

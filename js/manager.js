@@ -1,7 +1,8 @@
 // js/manager.js — AES Leave Management System
 import { auth, db } from "./firebase.js";
 import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getAuth, onAuthStateChanged, signOut, createUserWithEmailAndPassword }
+import { getAuth, onAuthStateChanged, signOut, createUserWithEmailAndPassword,
+         EmailAuthProvider, reauthenticateWithCredential, updatePassword }
   from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { collection, doc, getDoc, updateDoc, addDoc,
          onSnapshot, serverTimestamp, query, orderBy, where, writeBatch }
@@ -677,8 +678,43 @@ function initUI() {
   // Hide add button for officers
   if (MGR.role==="officer") document.getElementById("addEmpBtn").style.display="none";
 
-  // My Leave form
-  document.getElementById("myFStartDate").addEventListener("change", updateMyPreview);
+  // Change password
+  document.getElementById("changePwBtn").addEventListener("click", () => {
+    document.getElementById("changePwForm").reset();
+    document.getElementById("changePwError").textContent   = "";
+    document.getElementById("changePwSuccess").textContent = "";
+    document.getElementById("changePwModal").style.display = "flex";
+  });
+  ["changePwModalClose","changePwModalCancel"].forEach(id =>
+    document.getElementById(id)?.addEventListener("click", () =>
+      document.getElementById("changePwModal").style.display = "none"
+    )
+  );
+  document.getElementById("changePwForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const errEl  = document.getElementById("changePwError");
+    const succEl = document.getElementById("changePwSuccess");
+    errEl.textContent=""; succEl.textContent="";
+    const current = document.getElementById("currentPw").value;
+    const newPw   = document.getElementById("newPw").value;
+    const confirm = document.getElementById("confirmPw").value;
+    if (newPw.length < 6) { errEl.textContent="New password must be at least 6 characters."; return; }
+    if (newPw !== confirm) { errEl.textContent="Passwords don't match."; return; }
+    try {
+      const user = auth.currentUser;
+      const cred = EmailAuthProvider.credential(user.email, current);
+      await reauthenticateWithCredential(user, cred);
+      await updatePassword(user, newPw);
+      succEl.textContent = "✅ Password updated successfully!";
+      document.getElementById("changePwForm").reset();
+    } catch(err) {
+      if (err.code==="auth/wrong-password" || err.code==="auth/invalid-credential") {
+        errEl.textContent = "Current password is incorrect.";
+      } else {
+        errEl.textContent = "Error: " + err.message;
+      }
+    }
+  });
   document.getElementById("myFEndDate").addEventListener("change",   updateMyPreview);
   document.getElementById("myFLeaveType").addEventListener("change", updateMyPreview);
   document.getElementById("myLeaveForm").addEventListener("submit",  submitMyLeave);

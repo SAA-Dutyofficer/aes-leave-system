@@ -24,7 +24,8 @@
     <div class="sidenav-user">
       <div class="su-name" id="navName">--</div>
       <div class="su-role" id="navRole">--</div>
-      <button class="btn btn-ghost btn-sm" id="logoutBtn">Sign Out</button>
+      <button class="btn btn-sm su-btn" id="changePwBtn">🔑 Change Password</button>
+      <button class="btn btn-sm su-btn su-btn-signout" id="logoutBtn">Sign Out</button>
     </div>
   </aside>
 
@@ -339,6 +340,38 @@
           <div class="modal-actions">
             <button type="button" class="btn btn-ghost" id="rejectModalCancel">Cancel</button>
             <button type="submit" class="btn btn-danger">Confirm Rejection</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Change Password Modal -->
+  <div class="modal-bg" id="changePwModal" style="display:none">
+    <div class="modal-box">
+      <div class="modal-hd">
+        <span>🔑 Change Password</span>
+        <button class="modal-close" id="changePwModalClose">✕</button>
+      </div>
+      <div class="modal-bd">
+        <form id="changePwForm">
+          <div class="field-group">
+            <label>Current Password</label>
+            <input type="password" id="currentPw" placeholder="••••••••" required/>
+          </div>
+          <div class="field-group">
+            <label>New Password</label>
+            <input type="password" id="newPw" placeholder="min 6 characters" required/>
+          </div>
+          <div class="field-group">
+            <label>Confirm New Password</label>
+            <input type="password" id="confirmPw" placeholder="repeat new password" required/>
+          </div>
+          <div class="form-error" id="changePwError"></div>
+          <div class="auth-success" id="changePwSuccess" style="color:#057a55;font-size:13px;min-height:16px"></div>
+          <div class="modal-actions">
+            <button type="button" class="btn btn-ghost" id="changePwModalCancel">Cancel</button>
+            <button type="submit" class="btn btn-primary">Update Password</button>
           </div>
         </form>
       </div>
