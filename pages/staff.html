@@ -3,115 +3,112 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>My Leave | AES Leave Management</title>
+  <title>My Leave | AES Fire & Rescue</title>
   <link rel="stylesheet" href="../css/main.css"/>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
 </head>
-<body>
+<body class="staff-body">
 
-  <nav class="topnav">
-    <div class="topnav-left">
-      <span class="nav-logo">🚒 AES Leave</span>
+  <!-- Top banner -->
+  <div id="topBanner" class="top-banner" style="display:none"></div>
+
+  <!-- Top nav -->
+  <header class="staff-topnav">
+    <div class="topnav-brand">
+      <img src="../assets/logo.png" alt="" class="nav-logo-img" onerror="this.style.display='none'"/>
+      <span class="nav-brand-text">AES Fire &amp; Rescue</span>
     </div>
-    <div class="topnav-right">
-      <div class="nav-user-info">
-        <span class="nav-username" id="navName">Loading...</span>
-        <span class="nav-dept" id="navDept"></span>
+    <div class="topnav-user">
+      <div class="user-avatar" id="navInitials">?</div>
+      <div class="user-info">
+        <div class="user-name" id="navName">Loading…</div>
+        <div class="user-sub"  id="navRole"></div>
       </div>
-      <button class="btn btn-ghost btn-sm" id="staffChangePwBtn">🔑</button>
-      <button class="btn btn-ghost btn-sm" id="logoutBtn">Sign Out</button>
+      <button class="icon-btn" id="changePwBtn" title="Change Password">🔑</button>
+      <button class="icon-btn icon-btn-danger" id="logoutBtn" title="Sign Out">⏻</button>
     </div>
-  </nav>
+  </header>
 
-  <nav class="bottomnav">
-    <button class="bnav-item active" data-section="overview">
-      <span class="bnav-icon">🏠</span><span>Overview</span>
-    </button>
-    <button class="bnav-item" data-section="request">
-      <span class="bnav-icon">➕</span><span>Request</span>
-    </button>
-    <button class="bnav-item" data-section="history">
-      <span class="bnav-icon">📋</span><span>History</span>
-    </button>
-    <button class="bnav-item" data-section="team">
-      <span class="bnav-icon">👥</span><span>Team</span>
-    </button>
-  </nav>
-
-  <div class="page-wrap">
+  <!-- Main content -->
+  <main class="staff-main">
 
     <!-- Overview -->
-    <section class="page-section active" id="section-overview">
-      <div class="section-title">My Leave Overview</div>
+    <section class="staff-section active" id="sec-overview">
+      <div class="page-title">Leave Overview</div>
 
-      <div class="balance-grid">
-        <div class="balance-card bc-blue">
-          <div class="bc-label">Entitlement</div>
-          <div class="bc-value" id="bcEntitlement">--</div>
-          <div class="bc-sub">days this cycle</div>
+      <div class="ov-grid">
+        <div class="ov-card ov-blue">
+          <div class="ov-label">Entitlement</div>
+          <div class="ov-value" id="ovEntitlement">--</div>
+          <div class="ov-sub">days this cycle</div>
         </div>
-        <div class="balance-card bc-orange">
-          <div class="bc-label">Used</div>
-          <div class="bc-value" id="bcUsed">--</div>
-          <div class="bc-sub">days taken</div>
+        <div class="ov-card ov-green">
+          <div class="ov-label">Remaining</div>
+          <div class="ov-value" id="ovRemaining">--</div>
+          <div class="ov-sub">days left</div>
         </div>
-        <div class="balance-card bc-green">
-          <div class="bc-label">Remaining</div>
-          <div class="bc-value" id="bcRemaining">--</div>
-          <div class="bc-sub">days left</div>
+        <div class="ov-card ov-amber">
+          <div class="ov-label">Used</div>
+          <div class="ov-value" id="ovUsed">--</div>
+          <div class="ov-sub">days taken</div>
         </div>
-        <div class="balance-card bc-purple">
-          <div class="bc-label">Unpaid Used</div>
-          <div class="bc-value" id="bcUnpaid">--</div>
-          <div class="bc-sub">days unpaid</div>
+        <div class="ov-card ov-slate">
+          <div class="ov-label">Pending</div>
+          <div class="ov-value" id="ovPending">--</div>
+          <div class="ov-sub">awaiting approval</div>
         </div>
       </div>
 
-      <div class="card">
-        <div class="card-body">
-          <div class="progress-label-row">
+      <div class="info-card">
+        <div class="info-card-body">
+          <div class="ov-bar-header">
             <span>Annual leave usage</span>
-            <span id="progressPct">0%</span>
+            <span id="ovBarPct">0%</span>
           </div>
-          <div class="progress-track">
-            <div class="progress-fill" id="progressFill" style="width:0%"></div>
+          <div class="ov-bar-track">
+            <div class="ov-bar-fill bar-ok" id="ovBar" style="width:0%"></div>
           </div>
-          <div class="cycle-info" id="cycleInfo">Cycle: --</div>
+          <div class="ov-meta-row">
+            <span id="ovCycle">Cycle: --</span>
+            <span id="ovExpiry" class="ov-expiry">--</span>
+          </div>
         </div>
       </div>
 
-      <div class="card">
-        <div class="card-head"><span>Upcoming & Recent Leave</span></div>
-        <div class="card-body no-pad">
-          <div id="upcomingLeave" class="simple-list">
-            <div class="list-skeleton"><div class="skel"></div><div class="skel"></div></div>
+      <div class="info-card">
+        <div class="info-card-head">Upcoming Leave</div>
+        <div class="info-card-body no-pad">
+          <div id="upcomingList"><div class="empty-state">No upcoming leave.</div></div>
+        </div>
+      </div>
+
+      <div class="info-card">
+        <div class="info-card-body">
+          <div class="stat-row">
+            <span class="stat-label">Unpaid Leave Used</span>
+            <span class="stat-val" id="ovUnpaid">0</span>
           </div>
         </div>
       </div>
     </section>
 
     <!-- Request -->
-    <section class="page-section" id="section-request">
-      <div class="section-title">Request Leave</div>
+    <section class="staff-section" id="sec-request">
+      <div class="page-title">Request Leave</div>
 
-      <!-- Interactive Calendar -->
-      <div class="card">
-        <div class="card-head"><span>📅 Select Your Dates</span></div>
-        <div class="card-body cal-card-body">
-          <div id="leaveCalendar" class="leave-calendar">
-            <div class="cal-loading">Loading calendar…</div>
-          </div>
-          <div id="calSelInfo" class="cal-sel-info" style="display:none"></div>
+      <div class="info-card">
+        <div class="info-card-head">Select Dates</div>
+        <div class="info-card-body cal-body">
+          <div id="leaveCalendar" class="leave-cal">Loading calendar…</div>
         </div>
       </div>
 
-      <!-- Form -->
-      <div class="card">
-        <div class="card-head"><span>Request Details</span></div>
-        <div class="card-body">
-          <form id="leaveForm">
-            <div class="field-group">
+      <div class="info-card">
+        <div class="info-card-head">Request Details</div>
+        <div class="info-card-body">
+          <form id="requestForm">
+            <div class="form-field">
               <label>Leave Type</label>
               <select id="fLeaveType">
                 <option value="Annual Leave">Annual Leave</option>
@@ -123,84 +120,73 @@
                 <option value="Exam Leave">Exam Leave</option>
               </select>
             </div>
-            <div class="field-row">
-              <div class="field-group">
+            <div class="form-row">
+              <div class="form-field">
                 <label>Start Date</label>
                 <input type="date" id="fStartDate" required/>
               </div>
-              <div class="field-group">
+              <div class="form-field">
                 <label>End Date</label>
                 <input type="date" id="fEndDate" required/>
               </div>
             </div>
-            <div class="days-preview" id="daysPreview" style="display:none">
-              <span class="dp-num" id="daysCount">0</span> working day(s) selected
+            <div class="days-pill" id="daysPreview" style="display:none">
+              <span id="daysCount">0</span> working day(s) selected
             </div>
-            <div class="clash-warning" id="clashWarning" style="display:none">
-              ⚠️ <span id="clashMsg"></span>
-            </div>
-            <div class="balance-warning" id="balanceWarning" style="display:none"></div>
-            <div class="field-group">
-              <label>Notes <span class="optional">(optional)</span></label>
-              <textarea id="fNotes" placeholder="Any notes for your approving officer…"></textarea>
+            <div class="form-warning" id="leaveWarning" style="display:none"></div>
+            <div class="form-field">
+              <label>Notes <span class="opt">(optional)</span></label>
+              <textarea id="fNotes" placeholder="Any notes for your approving officer…" rows="3"></textarea>
             </div>
             <div class="form-error" id="formError"></div>
-            <button type="submit" class="btn btn-primary btn-block" id="submitBtn">Submit Request</button>
+            <button type="submit" class="btn-primary-full">Submit Request</button>
           </form>
         </div>
       </div>
     </section>
 
     <!-- History -->
-    <section class="page-section" id="section-history">
-      <div class="section-title">Leave History</div>
+    <section class="staff-section" id="sec-history">
+      <div class="page-title">Leave History</div>
       <div class="filter-row">
-        <select id="historyFilter">
+        <select id="histFilter">
           <option value="all">All Requests</option>
           <option value="Pending">Pending</option>
-          <option value="Approved (Officer)">Approved (Officer)</option>
-          <option value="Approved (Admin)">Approved (Admin)</option>
           <option value="Approved">Fully Approved</option>
           <option value="EditAllowed">Edit Allowed</option>
           <option value="Rejected">Rejected</option>
           <option value="Cancelled">Cancelled</option>
         </select>
       </div>
-      <div class="card">
-        <div class="card-body no-pad">
-          <div id="historyList" class="request-list">
-            <div class="list-empty">Loading…</div>
-          </div>
-        </div>
-      </div>
+      <div id="histList"><div class="empty-state">Loading…</div></div>
     </section>
 
-    <!-- Team -->
-    <section class="page-section" id="section-team">
-      <div class="section-title">My Team</div>
-      <div class="card">
-        <div class="card-head"><span id="teamGroupLabel">Team Members</span></div>
-        <div class="card-body no-pad">
-          <div id="teamList" class="simple-list">
-            <div class="list-empty">Loading team…</div>
-          </div>
-        </div>
-      </div>
-    </section>
+  </main>
 
-  </div>
+  <!-- Bottom nav -->
+  <nav class="staff-bnav">
+    <button class="bnav-btn active" data-sec="overview">
+      <span class="bnav-icon">⊞</span><span>Overview</span>
+    </button>
+    <button class="bnav-btn" data-sec="request">
+      <span class="bnav-icon">＋</span><span>Request</span>
+    </button>
+    <button class="bnav-btn" data-sec="history">
+      <span class="bnav-icon">☰</span><span>History</span>
+    </button>
+  </nav>
 
-  <!-- Edit Modal -->
-  <div class="modal-bg" id="editModal" style="display:none">
+  <!-- Edit modal -->
+  <div class="modal-overlay" id="editModal" style="display:none">
     <div class="modal-box">
-      <div class="modal-hd">
-        <span>Edit Leave Request</span>
-        <button class="modal-close" id="editModalClose">✕</button>
+      <div class="modal-head">
+        <span>Edit Request</span>
+        <button class="modal-x" id="editModalClose">✕</button>
       </div>
-      <div class="modal-bd">
+      <div class="modal-body">
         <form id="editForm">
-          <input type="hidden" id="editRequestId"/>
-          <div class="field-group">
+          <input type="hidden" id="editReqId"/>
+          <div class="form-field">
             <label>Leave Type</label>
             <select id="editLeaveType">
               <option value="Annual Leave">Annual Leave</option>
@@ -212,63 +198,54 @@
               <option value="Exam Leave">Exam Leave</option>
             </select>
           </div>
-          <div class="field-row">
-            <div class="field-group">
+          <div class="form-row">
+            <div class="form-field">
               <label>Start Date</label>
               <input type="date" id="editStart" required/>
             </div>
-            <div class="field-group">
+            <div class="form-field">
               <label>End Date</label>
               <input type="date" id="editEnd" required/>
             </div>
           </div>
-          <div class="field-group">
+          <div class="form-field">
             <label>Notes</label>
-            <textarea id="editNotes" placeholder="Any notes..."></textarea>
+            <textarea id="editNotes" rows="2"></textarea>
           </div>
-          <div class="form-error" id="editError"></div>
+          <div class="form-error" id="editFormError"></div>
           <div class="modal-actions">
-            <button type="button" class="btn btn-ghost" id="editModalCancel">Cancel</button>
-            <button type="submit" class="btn btn-primary">Save Changes</button>
+            <button type="button" class="btn-ghost" id="editModalCancel">Cancel</button>
+            <button type="submit" class="btn-primary">Save Changes</button>
           </div>
         </form>
       </div>
     </div>
   </div>
 
-  <!-- Change Password Modal -->
-  <div class="modal-bg" id="staffChangePwModal" style="display:none">
+  <!-- Change password modal -->
+  <div class="modal-overlay" id="changePwModal" style="display:none">
     <div class="modal-box">
-      <div class="modal-hd">
-        <span>🔑 Change Password</span>
-        <button class="modal-close" id="staffChangePwClose">✕</button>
+      <div class="modal-head">
+        <span>Change Password</span>
+        <button class="modal-x" id="changePwClose">✕</button>
       </div>
-      <div class="modal-bd">
-        <form id="staffChangePwForm">
-          <div class="field-group">
-            <label>Current Password</label>
-            <input type="password" id="staffCurrentPw" placeholder="••••••••" required/>
-          </div>
-          <div class="field-group">
-            <label>New Password</label>
-            <input type="password" id="staffNewPw" placeholder="min 6 characters" required/>
-          </div>
-          <div class="field-group">
-            <label>Confirm New Password</label>
-            <input type="password" id="staffConfirmPw" placeholder="repeat new password" required/>
-          </div>
-          <div class="form-error" id="staffChangePwError"></div>
-          <div style="color:#057a55;font-size:13px;min-height:16px" id="staffChangePwSuccess"></div>
+      <div class="modal-body">
+        <form id="changePwForm">
+          <div class="form-field"><label>Current Password</label><input type="password" id="cpCurrent" required/></div>
+          <div class="form-field"><label>New Password</label><input type="password" id="cpNew" placeholder="min 6 characters" required/></div>
+          <div class="form-field"><label>Confirm New Password</label><input type="password" id="cpConfirm" required/></div>
+          <div class="form-error" id="changePwErr"></div>
+          <div class="form-success" id="changePwOk"></div>
           <div class="modal-actions">
-            <button type="button" class="btn btn-ghost" id="staffChangePwCancel">Cancel</button>
-            <button type="submit" class="btn btn-primary">Update Password</button>
+            <button type="button" class="btn-ghost" id="changePwCancel">Cancel</button>
+            <button type="submit" class="btn-primary">Update Password</button>
           </div>
         </form>
       </div>
     </div>
   </div>
 
-  <div class="toast-wrap" id="toastWrap"></div>
+  <div id="toastWrap" class="toast-wrap"></div>
   <script type="module" src="../js/staff.js"></script>
 </body>
 </html>
