@@ -1,3 +1,4 @@
+// js/firebase.js
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getAuth } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { getFirestore } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
@@ -15,8 +16,5 @@ const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const db   = getFirestore(app);
 
-window.addEventListener('online',  () => document.querySelectorAll('.offline-dot,.offline-indicator').forEach(el => el.style.display='none'));
-window.addEventListener('offline', () => {
-  document.querySelectorAll('.offline-dot').forEach(el => el.style.display='inline');
-  document.querySelectorAll('.offline-indicator').forEach(el => el.style.display='block');
-});
+window.addEventListener('online',  () => document.querySelectorAll('.conn-dot').forEach(el => { el.classList.remove('offline'); el.title = "Connected"; }));
+window.addEventListener('offline', () => document.querySelectorAll('.conn-dot').forEach(el => { el.classList.add('offline'); el.title = "Offline"; }));
