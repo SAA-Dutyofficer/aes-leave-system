@@ -3,212 +3,201 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Manager Portal | AES Leave Management</title>
+  <title>Manager Portal | AES Fire & Rescue</title>
   <link rel="stylesheet" href="../css/main.css"/>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
 </head>
 <body class="manager-body">
 
+  <!-- Mobile header -->
+  <header class="mgr-mobile-header">
+    <div class="mmh-brand">
+      <img src="../assets/logo.png" alt="" class="mmh-logo" onerror="this.style.display='none'"/>
+      <span>AES Fire &amp; Rescue</span>
+    </div>
+    <div class="mmh-user">
+      <span id="mgrNameMob">--</span>
+      <span id="mgrRoleMob" class="mmh-role">--</span>
+      <button class="icon-btn" id="mobileCpBtn" title="Change Password">🔑</button>
+      <button class="icon-btn icon-btn-danger" id="mobileLogoutBtn" title="Sign Out">⏻</button>
+    </div>
+  </header>
+
   <!-- Sidebar -->
-  <aside class="sidenav">
-    <div class="sidenav-brand">🚒 AES Leave</div>
-    <nav class="sidenav-links">
-      <button class="sidenav-item active" data-section="dashboard">📊 Dashboard</button>
-      <button class="sidenav-item" data-section="approvals">✅ Approvals</button>
-      <button class="sidenav-item" data-section="clashes">⚠️ Clashes</button>
-      <button class="sidenav-item" data-section="leave">📋 All Leave</button>
-      <button class="sidenav-item" data-section="employees">👥 Employees</button>
-      <button class="sidenav-item" data-section="myleave">🏖️ My Leave</button>
+  <aside class="mgr-sidebar">
+    <div class="sidebar-brand">
+      <img src="../assets/logo.png" alt="" class="sidebar-logo" onerror="this.style.display='none'"/>
+      <div class="sidebar-brand-text">
+        <div class="sb-title">AES Fire &amp; Rescue</div>
+        <div class="sb-sub">Leave Management</div>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <button class="snav-item active" data-sec="dashboard">
+        <span class="snav-icon">▦</span> Dashboard
+      </button>
+      <button class="snav-item" data-sec="approvals">
+        <span class="snav-icon">✓</span> Approvals
+        <span class="badge-count" id="approvalBadge" style="display:none"></span>
+      </button>
+      <button class="snav-item" data-sec="clashes">
+        <span class="snav-icon">⚠</span> Clashes
+      </button>
+      <button class="snav-item" data-sec="allleave">
+        <span class="snav-icon">≡</span> All Leave
+      </button>
+      <button class="snav-item" data-sec="employees">
+        <span class="snav-icon">⊞</span> Employees
+      </button>
+      <button class="snav-item" data-sec="myleave">
+        <span class="snav-icon">◷</span> My Leave
+      </button>
     </nav>
-    <div class="sidenav-user">
-      <div class="su-name" id="navName">--</div>
-      <div class="su-role" id="navRole">--</div>
-      <button class="btn btn-sm su-btn" id="changePwBtn">🔑 Change Password</button>
-      <button class="btn btn-sm su-btn su-btn-signout" id="logoutBtn">Sign Out</button>
+
+    <div class="sidebar-user">
+      <div class="su-avatar" id="mgrInitials">?</div>
+      <div class="su-info">
+        <div class="su-name" id="mgrName">--</div>
+        <div class="su-role" id="mgrRole">--</div>
+      </div>
+      <div class="su-actions">
+        <button class="su-btn" id="changePwBtn" title="Change Password">🔑</button>
+        <button class="su-btn su-signout" id="logoutBtn" title="Sign Out">⏻</button>
+      </div>
     </div>
   </aside>
 
-  <!-- Mobile user header (only shows on mobile) -->
-  <div class="mgr-mobile-header">
-    <div class="mgr-mobile-user">
-      <div class="mgr-mobile-name" id="mobileNavName">--</div>
-      <div class="mgr-mobile-role" id="mobileNavRole">--</div>
-    </div>
-    <div class="mgr-mobile-actions">
-      <button class="btn btn-sm mgr-mobile-btn" id="mobileChdPwBtn">🔑</button>
-      <button class="btn btn-sm mgr-mobile-btn mgr-mobile-signout" id="mobileLogoutBtn">Sign Out</button>
-    </div>
-  </div>
-
-  <!-- Mobile Bottom Nav -->
-  <nav class="mgr-bottomnav">
-    <button class="mgr-bnav-item active" data-section="dashboard">
-      <span class="bnav-icon">📊</span><span>Dashboard</span>
-    </button>
-    <button class="mgr-bnav-item" data-section="approvals">
-      <span class="bnav-icon">✅</span><span>Approvals</span>
-    </button>
-    <button class="mgr-bnav-item" data-section="clashes">
-      <span class="bnav-icon">⚠️</span><span>Clashes</span>
-    </button>
-    <button class="mgr-bnav-item" data-section="leave">
-      <span class="bnav-icon">📋</span><span>All Leave</span>
-    </button>
-    <button class="mgr-bnav-item" data-section="employees">
-      <span class="bnav-icon">👥</span><span>Staff</span>
-    </button>
-    <button class="mgr-bnav-item" data-section="myleave">
-      <span class="bnav-icon">🏖️</span><span>My Leave</span>
-    </button>
-  </nav>
-
   <!-- Main -->
-  <main class="manager-main">
+  <main class="mgr-main">
 
     <!-- Dashboard -->
-    <section class="page-section active" id="section-dashboard">
-      <div class="section-title">Dashboard</div>
-
+    <section class="mgr-section active" id="sec-dashboard">
+      <div class="page-title">Dashboard</div>
       <div class="stat-grid">
         <div class="stat-card">
-          <div class="stat-value" id="statOnLeave">--</div>
-          <div class="stat-label">On Leave Today</div>
+          <div class="stat-val" id="statOnLeave">0</div>
+          <div class="stat-lbl">On Leave Today</div>
         </div>
-        <div class="stat-card stat-warn-card">
-          <div class="stat-value" id="statPending">--</div>
-          <div class="stat-label">Pending My Approval</div>
+        <div class="stat-card stat-card-warn">
+          <div class="stat-val" id="statPending">0</div>
+          <div class="stat-lbl">Pending My Approval</div>
         </div>
         <div class="stat-card">
-          <div class="stat-value" id="statTotal">--</div>
-          <div class="stat-label">Total Employees</div>
+          <div class="stat-val" id="statTotal">0</div>
+          <div class="stat-lbl">Total Employees</div>
         </div>
       </div>
-
-      <div class="card">
-        <div class="card-head"><span>Shift Leave Status Today</span></div>
-        <div class="card-body">
-          <div class="shift-breakdown" id="shiftBreakdown"></div>
-          <div class="clash-note">⚠️ Warning triggered when 4+ staff from same shift on leave</div>
+      <div class="info-card">
+        <div class="info-card-head">Shift Leave Status Today</div>
+        <div class="info-card-body">
+          <div class="shift-grid" id="shiftGrid"></div>
+          <div class="clash-note">⚠ Warning at 4+ staff from same shift on leave simultaneously</div>
         </div>
       </div>
     </section>
 
     <!-- Approvals -->
-    <section class="page-section" id="section-approvals">
-      <div class="section-title">Pending Approvals</div>
-      <div id="approvalList" class="approval-list">
-        <div class="list-empty">Loading...</div>
-      </div>
+    <section class="mgr-section" id="sec-approvals">
+      <div class="page-title">Pending Approvals</div>
+      <div id="approvalList"><div class="empty-state">Loading…</div></div>
     </section>
 
     <!-- Clashes -->
-    <section class="page-section" id="section-clashes">
-      <div class="section-title">Shift Clashes & Overlap</div>
-
-      <div class="card">
-        <div class="card-head"><span>📍 On Leave Today — Per Shift</span></div>
-        <div class="card-body">
-          <div class="shift-breakdown" id="clashTodayGrid"></div>
+    <section class="mgr-section" id="sec-clashes">
+      <div class="page-title">Shift Clashes &amp; Overlap</div>
+      <div class="info-card">
+        <div class="info-card-head">On Leave Today — Per Shift</div>
+        <div class="info-card-body">
+          <div class="shift-grid" id="clashToday"></div>
         </div>
       </div>
-
-      <div class="card">
-        <div class="card-head"><span>📅 Upcoming Overlaps (Next 60 Days)</span></div>
-        <div class="card-body no-pad">
-          <div id="clashList" class="simple-list">
-            <div class="list-empty">Loading…</div>
-          </div>
+      <div class="info-card">
+        <div class="info-card-head">Upcoming Overlaps (Next 60 Days)</div>
+        <div class="info-card-body no-pad">
+          <div id="clashUpcoming"><div class="empty-state">Loading…</div></div>
         </div>
       </div>
     </section>
 
     <!-- All Leave -->
-    <section class="page-section" id="section-leave">
-      <div class="section-title">All Leave Records</div>
+    <section class="mgr-section" id="sec-allleave">
+      <div class="page-title">
+        All Leave Records
+        <button class="btn-export" onclick="exportLeave()">⬇ Export CSV</button>
+      </div>
       <div class="filter-bar">
-        <input type="text" id="leaveSearch" placeholder="Search by name…" class="search-input"/>
+        <input type="text" id="leaveSearch" placeholder="Search by name…" class="filter-input"/>
         <select id="leaveFilter">
           <option value="all">All Status</option>
           <option value="Pending">Pending</option>
-          <option value="Approved (Officer)">Approved (Officer)</option>
-          <option value="Approved (Admin)">Approved (Admin)</option>
-          <option value="Approved">Fully Approved</option>
+          <option value="Approved">Approved</option>
           <option value="Rejected">Rejected</option>
           <option value="Cancelled">Cancelled</option>
         </select>
+        <select id="leaveGroupFilter">
+          <option value="all">All Groups</option>
+        </select>
       </div>
-      <div class="card">
-        <div class="card-body no-pad" id="allLeaveList">
-          <div class="list-empty">Loading...</div>
+      <div class="info-card">
+        <div class="info-card-body no-pad" id="allLeaveTable">
+          <div class="empty-state">Loading…</div>
         </div>
       </div>
     </section>
 
     <!-- Employees -->
-    <section class="page-section" id="section-employees">
-      <div class="section-title">
+    <section class="mgr-section" id="sec-employees">
+      <div class="page-title">
         Employees
-        <button class="btn btn-primary btn-sm" id="addEmpBtn">+ Add Employee</button>
+        <button class="btn-primary-sm" id="addEmpBtn">+ Add Employee</button>
       </div>
       <div class="filter-bar">
-        <input type="text" id="empSearch" placeholder="Search by name or email…" class="search-input"/>
-        <select id="empGroupFilter">
-          <option value="all">All Groups</option>
-        </select>
+        <input type="text" id="empSearch" placeholder="Search by name or email…" class="filter-input"/>
+        <select id="empGroupFilter"><option value="all">All Groups</option></select>
       </div>
-      <div id="empList" class="emp-list">
-        <div class="list-empty">Loading...</div>
-      </div>
+      <div id="empList"><div class="empty-state">Loading…</div></div>
     </section>
 
     <!-- My Leave -->
-    <section class="page-section" id="section-myleave">
-      <div class="section-title">My Leave</div>
-
-      <div class="balance-grid">
-        <div class="balance-card bc-blue">
-          <div class="bc-label">Entitlement</div>
-          <div class="bc-value" id="myBcEntitlement">--</div>
-          <div class="bc-sub">days this cycle</div>
+    <section class="mgr-section" id="sec-myleave">
+      <div class="page-title">My Leave</div>
+      <div class="ov-grid">
+        <div class="ov-card ov-blue">
+          <div class="ov-label">Entitlement</div>
+          <div class="ov-value" id="myOvEntitlement">--</div>
+          <div class="ov-sub">days this cycle</div>
         </div>
-        <div class="balance-card bc-orange">
-          <div class="bc-label">Used</div>
-          <div class="bc-value" id="myBcUsed">--</div>
-          <div class="bc-sub">days taken</div>
+        <div class="ov-card ov-green">
+          <div class="ov-label">Remaining</div>
+          <div class="ov-value" id="myOvRemaining">--</div>
+          <div class="ov-sub">days left</div>
         </div>
-        <div class="balance-card bc-green">
-          <div class="bc-label">Remaining</div>
-          <div class="bc-value" id="myBcRemaining">--</div>
-          <div class="bc-sub">days left</div>
+        <div class="ov-card ov-amber">
+          <div class="ov-label">Used</div>
+          <div class="ov-value" id="myOvUsed">--</div>
+          <div class="ov-sub">days taken</div>
         </div>
-        <div class="balance-card bc-purple">
-          <div class="bc-label">Unpaid</div>
-          <div class="bc-value" id="myBcUnpaid">--</div>
-          <div class="bc-sub">days unpaid</div>
+        <div class="ov-card ov-slate">
+          <div class="ov-label">Until Renewal</div>
+          <div class="ov-value" id="myOvExpiry" style="font-size:18px">--</div>
         </div>
       </div>
-
-      <div class="card">
-        <div class="card-body">
-          <div class="progress-label-row">
-            <span>Annual leave usage</span>
-            <span id="myProgressPct">0%</span>
-          </div>
-          <div class="progress-track">
-            <div class="progress-fill" id="myProgressFill" style="width:0%"></div>
-          </div>
-          <div class="cycle-info" id="myCycleInfo">Cycle: --</div>
+      <div class="info-card">
+        <div class="info-card-body">
+          <div class="ov-bar-header"><span>Usage</span><span id="myOvBarPct">0%</span></div>
+          <div class="ov-bar-track"><div class="ov-bar-fill bar-ok" id="myOvBar" style="width:0%"></div></div>
+          <div class="ov-meta-row"><span id="myOvCycle">Cycle: --</span></div>
         </div>
       </div>
-
-      <div class="card">
-        <div class="card-head"><span>Request Leave</span></div>
-        <div class="card-body">
+      <div class="info-card">
+        <div class="info-card-head">Submit Leave Request</div>
+        <div class="info-card-body">
           <form id="myLeaveForm">
-            <div class="field-group">
+            <div class="form-field">
               <label>Leave Type</label>
-              <select id="myFLeaveType">
+              <select id="myType">
                 <option value="Annual Leave">Annual Leave</option>
                 <option value="Unpaid Leave">Unpaid Leave</option>
                 <option value="Sick Leave">Sick Leave</option>
@@ -218,117 +207,100 @@
                 <option value="Exam Leave">Exam Leave</option>
               </select>
             </div>
-            <div class="field-row">
-              <div class="field-group">
-                <label>Start Date</label>
-                <input type="date" id="myFStartDate" required/>
-              </div>
-              <div class="field-group">
-                <label>End Date</label>
-                <input type="date" id="myFEndDate" required/>
-              </div>
+            <div class="form-row">
+              <div class="form-field"><label>Start Date</label><input type="date" id="myStart" required/></div>
+              <div class="form-field"><label>End Date</label><input type="date" id="myEnd" required/></div>
             </div>
-            <div class="days-preview" id="myDaysPreview" style="display:none">
-              <span id="myDaysCount">0</span> working day(s) selected
+            <div class="form-field">
+              <label>Notes <span class="opt">(optional)</span></label>
+              <textarea id="myNotes" rows="2"></textarea>
             </div>
-            <div class="balance-warning" id="myBalanceWarning" style="display:none"></div>
-            <div class="field-group">
-              <label>Notes <span class="optional">(optional)</span></label>
-              <textarea id="myFNotes" placeholder="Any notes..."></textarea>
-            </div>
-            <div class="form-error" id="myFormError"></div>
-            <button type="submit" class="btn btn-primary btn-block">Submit Request</button>
+            <div class="form-error" id="myLeaveError"></div>
+            <button type="submit" class="btn-primary-full">Submit</button>
           </form>
         </div>
       </div>
-
-      <div class="card">
-        <div class="card-head"><span>My Leave History</span></div>
-        <div class="card-body no-pad">
-          <div id="myHistoryList" class="request-list">
-            <div class="list-empty">No requests yet.</div>
-          </div>
+      <div class="info-card">
+        <div class="info-card-head">My Request History</div>
+        <div class="info-card-body no-pad">
+          <div id="myLeaveList"><div class="empty-state">No requests yet.</div></div>
         </div>
       </div>
     </section>
 
   </main>
 
+  <!-- Mobile bottom nav -->
+  <nav class="mgr-bnav">
+    <button class="mbnav-btn active" data-sec="dashboard"><span>▦</span><span>Dashboard</span></button>
+    <button class="mbnav-btn" data-sec="approvals"><span>✓</span><span>Approvals</span></button>
+    <button class="mbnav-btn" data-sec="clashes"><span>⚠</span><span>Clashes</span></button>
+    <button class="mbnav-btn" data-sec="allleave"><span>≡</span><span>All Leave</span></button>
+    <button class="mbnav-btn" data-sec="employees"><span>⊞</span><span>Staff</span></button>
+    <button class="mbnav-btn" data-sec="myleave"><span>◷</span><span>My Leave</span></button>
+  </nav>
+
   <!-- Add/Edit Employee Modal -->
-  <div class="modal-bg" id="empModal" style="display:none">
+  <div class="modal-overlay" id="empModal" style="display:none">
     <div class="modal-box modal-lg">
-      <div class="modal-hd">
+      <div class="modal-head">
         <span id="empModalTitle">Add Employee</span>
-        <button class="modal-close" id="empModalClose">✕</button>
+        <button class="modal-x" id="empModalClose">✕</button>
       </div>
-      <div class="modal-bd">
+      <div class="modal-body">
         <form id="empForm">
-          <input type="hidden" id="empFormUid"/>
-          <div class="field-row">
-            <div class="field-group">
-              <label>Full Name *</label>
-              <input type="text" id="efName" required placeholder="John Smith"/>
-            </div>
-            <div class="field-group">
-              <label>Email Address *</label>
-              <input type="email" id="efEmail" required placeholder="john@example.com"/>
-            </div>
+          <div class="form-row">
+            <div class="form-field"><label>Full Name *</label><input type="text" id="efName" required placeholder="John Smith"/></div>
+            <div class="form-field"><label>Email Address *</label><input type="email" id="efEmail" required placeholder="name@sharjahairport.ae"/></div>
           </div>
-          <div class="field-row">
-            <div class="field-group">
-              <label>Password * <span class="optional">(edit: leave blank to keep)</span></label>
-              <input type="password" id="efPassword" placeholder="min 6 characters"/>
-            </div>
-            <div class="field-group">
+          <div class="form-row">
+            <div class="form-field"><label>Password * <span class="opt">(leave blank to keep)</span></label><input type="password" id="efPassword" placeholder="min 6 characters"/></div>
+            <div class="form-field">
               <label>Role *</label>
               <select id="efRole">
                 <option value="staff">Staff</option>
-                <option value="officer">Officer</option>
+                <option value="officer">Station Officer</option>
+                <option value="supervisor">Watch Room Supervisor</option>
                 <option value="fire_admin">Fire Admin</option>
-                <option value="head_ops">Head of Operations</option>
+                <option value="section_head">Section Head</option>
+                <option value="director">Director (Fire Chief)</option>
               </select>
             </div>
           </div>
-          <div class="field-row">
-            <div class="field-group">
+          <div class="form-row">
+            <div class="form-field">
               <label>Department *</label>
               <select id="efDept">
                 <option value="DO">DO Staff (Shift Workers)</option>
-                <option value="GD">GD Staff (General Duty Mon–Thu)</option>
+                <option value="GD">GD Staff (General Duty)</option>
               </select>
             </div>
-            <div class="field-group" id="efShiftGroup">
+            <div class="form-field">
               <label>Shift Pattern</label>
-              <input type="text" id="efPattern" placeholder="2W2N4O" value="2W2N4O"/>
+              <input type="text" id="efPattern" placeholder="2D2N2O" value="2D2N2O"/>
             </div>
           </div>
-          <div class="field-row">
-            <div class="field-group">
-              <label>Joining Date *</label>
+          <div class="form-row">
+            <div class="form-field">
+              <label>Roster Start Date <span class="opt">(first day of shift cycle)</span></label>
+              <input type="date" id="efRosterStart"/>
+            </div>
+            <div class="form-field">
+              <label>Joining Date * <span class="opt">(used for leave cycle)</span></label>
               <input type="date" id="efJoinDate" required/>
             </div>
-            <div class="field-group">
-              <label>Cycle Start Date *</label>
-              <input type="date" id="efCycleStart" required/>
-              <div style="font-size:11px;color:#888;margin-top:3px">Also used as shift pattern reference date for DO staff</div>
-            </div>
           </div>
-          <div class="field-row">
-            <div class="field-group">
-              <label>Leave Entitlement (days) *</label>
-              <input type="number" id="efEntitlement" required placeholder="30" min="1"/>
-            </div>
-            <div class="field-group">
+          <div class="form-row">
+            <div class="form-field"><label>Leave Entitlement (days) *</label><input type="number" id="efEntitlement" required placeholder="30" min="1"/></div>
+            <div class="form-field">
               <label>Assign to Group/Shift</label>
-              <select id="efGroup">
-                <option value="">No Group</option>
-              </select>
+              <select id="efGroup"><option value="">No Group</option></select>
             </div>
           </div>
           <div class="form-error" id="empFormError"></div>
           <div class="modal-actions">
-            <button type="button" class="btn btn-ghost" id="empModalCancel">Cancel</button>
-            <button type="submit" class="btn btn-primary" id="empFormSubmit">Add Employee</button>
+            <button type="button" class="btn-ghost" id="empModalCancel">Cancel</button>
+            <button type="submit" class="btn-primary" id="empFormSubmit">Add Employee</button>
           </div>
         </form>
       </div>
@@ -336,22 +308,22 @@
   </div>
 
   <!-- Reject Modal -->
-  <div class="modal-bg" id="rejectModal" style="display:none">
+  <div class="modal-overlay" id="rejectModal" style="display:none">
     <div class="modal-box">
-      <div class="modal-hd">
+      <div class="modal-head">
         <span>Reject Request</span>
-        <button class="modal-close" id="rejectModalClose">✕</button>
+        <button class="modal-x" id="rejectModalClose">✕</button>
       </div>
-      <div class="modal-bd">
+      <div class="modal-body">
         <form id="rejectForm">
-          <input type="hidden" id="rejectRequestId"/>
-          <div class="field-group">
+          <input type="hidden" id="rejectReqId"/>
+          <div class="form-field">
             <label>Reason for Rejection *</label>
-            <textarea id="rejectReason" placeholder="Provide a reason for the staff member…" required></textarea>
+            <textarea id="rejectReason" rows="3" placeholder="Provide a reason for the staff member…" required></textarea>
           </div>
           <div class="modal-actions">
-            <button type="button" class="btn btn-ghost" id="rejectModalCancel">Cancel</button>
-            <button type="submit" class="btn btn-danger">Confirm Rejection</button>
+            <button type="button" class="btn-ghost" id="rejectModalCancel">Cancel</button>
+            <button type="submit" class="btn-danger">Confirm Rejection</button>
           </div>
         </form>
       </div>
@@ -359,38 +331,29 @@
   </div>
 
   <!-- Change Password Modal -->
-  <div class="modal-bg" id="changePwModal" style="display:none">
+  <div class="modal-overlay" id="cpModal" style="display:none">
     <div class="modal-box">
-      <div class="modal-hd">
-        <span>🔑 Change Password</span>
-        <button class="modal-close" id="changePwModalClose">✕</button>
+      <div class="modal-head">
+        <span>Change Password</span>
+        <button class="modal-x" id="cpModalClose">✕</button>
       </div>
-      <div class="modal-bd">
-        <form id="changePwForm">
-          <div class="field-group">
-            <label>Current Password</label>
-            <input type="password" id="currentPw" placeholder="••••••••" required/>
-          </div>
-          <div class="field-group">
-            <label>New Password</label>
-            <input type="password" id="newPw" placeholder="min 6 characters" required/>
-          </div>
-          <div class="field-group">
-            <label>Confirm New Password</label>
-            <input type="password" id="confirmPw" placeholder="repeat new password" required/>
-          </div>
-          <div class="form-error" id="changePwError"></div>
-          <div class="auth-success" id="changePwSuccess" style="color:#057a55;font-size:13px;min-height:16px"></div>
+      <div class="modal-body">
+        <form id="cpForm">
+          <div class="form-field"><label>Current Password</label><input type="password" id="cpCurrent" required/></div>
+          <div class="form-field"><label>New Password</label><input type="password" id="cpNew" placeholder="min 6 characters" required/></div>
+          <div class="form-field"><label>Confirm New Password</label><input type="password" id="cpConfirm" required/></div>
+          <div class="form-error" id="cpErr"></div>
+          <div class="form-success" id="cpOk"></div>
           <div class="modal-actions">
-            <button type="button" class="btn btn-ghost" id="changePwModalCancel">Cancel</button>
-            <button type="submit" class="btn btn-primary">Update Password</button>
+            <button type="button" class="btn-ghost" id="cpModalCancel">Cancel</button>
+            <button type="submit" class="btn-primary">Update Password</button>
           </div>
         </form>
       </div>
     </div>
   </div>
 
-  <div class="toast-wrap" id="toastWrap"></div>
+  <div id="toastWrap" class="toast-wrap"></div>
   <script type="module" src="../js/manager.js"></script>
 </body>
 </html>
