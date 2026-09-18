@@ -3,45 +3,84 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>AES Leave Management System</title>
+  <title>AES Leave Management — Sharjah Airport</title>
   <link rel="stylesheet" href="css/main.css"/>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
 </head>
-<body class="auth-body">
-  <div class="auth-wrapper">
-    <div class="auth-card">
-      <div class="auth-brand">
-        <div class="brand-icon">🚒</div>
-        <h1>AES Leave Management</h1>
-        <p>Sharjah Airport Authority</p>
+<body class="auth-page">
+
+  <div class="auth-split">
+
+    <!-- Left panel -->
+    <div class="auth-panel-left">
+      <div class="auth-brand-mark">
+        <img src="assets/logo.png" alt="Sharjah Airport" class="auth-logo" onerror="this.style.display='none'"/>
+        <div class="auth-dept">Fire &amp; Rescue Operations</div>
+        <div class="auth-system-name">Leave Management System</div>
       </div>
-      <form id="loginForm" class="auth-form">
-        <div class="field-group">
-          <label>Email Address</label>
-          <input type="email" id="loginEmail" placeholder="your@email.com" autocomplete="email" required/>
+      <div class="auth-tagline">Manage. Track. Approve.</div>
+    </div>
+
+    <!-- Right panel -->
+    <div class="auth-panel-right">
+      <div class="auth-form-wrap">
+
+        <div class="auth-form-header">
+          <h2>Sign In</h2>
+          <p>Access your leave portal</p>
         </div>
-        <div class="field-group">
-          <label>Password</label>
-          <div class="input-wrap">
-            <input type="password" id="loginPassword" placeholder="••••••••" autocomplete="current-password" required/>
-            <button type="button" class="toggle-pw" id="togglePw">👁</button>
+
+        <!-- Login view -->
+        <div id="loginView">
+          <form id="loginForm" autocomplete="on">
+            <div class="field-block">
+              <label>Email Address</label>
+              <input type="email" id="loginEmail" placeholder="name@sharjahairport.ae" autocomplete="email" required/>
+            </div>
+            <div class="field-block">
+              <label>Password</label>
+              <div class="pw-wrap">
+                <input type="password" id="loginPassword" placeholder="••••••••" autocomplete="current-password" required/>
+                <button type="button" id="togglePw" class="pw-toggle">👁</button>
+              </div>
+            </div>
+            <div class="auth-error" id="loginError"></div>
+            <button type="submit" class="btn-primary-full" id="loginBtn">
+              <span class="btn-text">Sign In</span>
+              <span class="btn-loader" style="display:none">●</span>
+            </button>
+          </form>
+          <div class="auth-links">
+            <a href="#" id="forgotLink">Forgot password?</a>
           </div>
         </div>
-        <div class="auth-error" id="loginError"></div>
-        <button type="submit" class="btn btn-primary btn-block" id="loginBtn">
-          <span class="btn-text">Sign In</span>
-          <span class="btn-loader" style="display:none">⏳</span>
-        </button>
-      </form>
-      <p class="auth-hint">Forgot your password? Contact your administrator.</p>
+
+        <!-- Reset view -->
+        <div id="resetView" style="display:none">
+          <p class="reset-info">Enter your email and we'll send a reset link.</p>
+          <form id="resetForm">
+            <div class="field-block">
+              <label>Email Address</label>
+              <input type="email" id="resetEmail" placeholder="name@sharjahairport.ae" required/>
+            </div>
+            <div id="resetMsg" class="reset-msg"></div>
+            <button type="submit" class="btn-primary-full">Send Reset Link</button>
+          </form>
+          <div class="auth-links">
+            <a href="#" id="backToLogin">← Back to Sign In</a>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="auth-footer-note">
+        Sharjah Airport Authority · Internal Use Only
+      </div>
     </div>
-    <div class="auth-footer">
-      <span class="offline-indicator" id="offlineIndicator" style="display:none">
-        ⚠️ You are offline — limited functionality available
-      </span>
-    </div>
+
   </div>
+
   <script type="module" src="js/auth.js"></script>
 </body>
 </html>
