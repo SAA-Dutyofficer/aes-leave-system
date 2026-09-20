@@ -8,8 +8,8 @@ import { collection, doc, getDoc, getDocs, setDoc, addDoc, updateDoc,
          onSnapshot, serverTimestamp, query, orderBy, where, writeBatch }
   from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { fmtDate, fmtDateTime, todayStr, getCurrentCycle, daysUntilExpiry,
-         countLeaveDays, statusBadge, roleBadge, toast, pbar,
-         ROLES, ALL_GROUPS, SHIFT_GROUPS, GD_SECTIONS, LEAVE_TYPES,
+         countLeaveDays, validateLeaveDates, statusBadge, roleBadge, toast, pbar,
+         ROLES, ALL_GROUPS, SHIFT_GROUPS, GD_SECTIONS, LEAVE_TYPES_UNIQUE,
          getApprovalChain, APPROVER_ROLES } from "./utils.js";
 import { sendEmail } from "./email.js";
 
@@ -636,8 +636,8 @@ document.getElementById("myLeaveForm")?.addEventListener("submit", async(e)=>{
   const type=document.getElementById("myType").value;
   const notes=document.getElementById("myNotes").value.trim();
   if (!start||!end||end<start){errEl.textContent="Invalid dates.";btn.disabled=false;btn.textContent="Submit";return;}
-  const days=countLeaveDays(start,end);
-  if (days===0){errEl.textContent="No working days in range.";btn.disabled=false;btn.textContent="Submit";return;}
+  const days=countLeaveDays(start,end,type);
+  if (days===0){errEl.textContent="No days in range.";btn.disabled=false;btn.textContent="Submit";return;}
   const chain=getApprovalChain(myOwnEmp.groupId,MGR.role);
   try {
     await addDoc(collection(db,"leaveRequests"),{
