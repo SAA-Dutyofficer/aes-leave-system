@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Roster | AES Fire & Rescue</title>
+  <link rel="stylesheet" href="../css/main.css"/>
+  <link rel="stylesheet" href="../css/roster.css"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+</head>
+<body class="staff-body">
+
+  <header class="staff-topnav">
+    <div class="topnav-brand">
+      <img src="../assets/logo.png" alt="" class="nav-logo-img" onerror="this.style.display='none'"/>
+      <span class="nav-brand-text">AES Fire &amp; Rescue</span>
+    </div>
+    <div class="topnav-user">
+      <div class="user-avatar" id="navInitials">?</div>
+      <div class="user-info">
+        <div class="user-name" id="navName">Loading…</div>
+        <div class="user-sub" id="navGroup"></div>
+      </div>
+      <button class="icon-btn icon-btn-danger" id="logoutBtn" title="Sign Out">⏻</button>
+    </div>
+  </header>
+
+  <main style="padding:16px 12px 80px;max-width:100%;">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:14px;">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <button class="cal-nav" onclick="rosterPrevMonth()">&#8249;</button>
+        <span id="rosterMonthLabel" style="min-width:140px;text-align:center;font-size:15px;font-weight:700;color:#0f1f3d">--</span>
+        <button class="cal-nav" onclick="rosterNextMonth()">&#8250;</button>
+      </div>
+      <select id="viewFilter" onchange="changeView(this.value)" style="padding:7px 10px;border:1.5px solid #e2e8f0;border-radius:6px;font-size:13px;font-family:'Inter',sans-serif;">
+        <option value="all">All Staff</option>
+        <option value="group">My Group</option>
+        <option value="me">Just Me</option>
+      </select>
+    </div>
+    <div class="roster-legend" style="margin-bottom:10px;">
+      <span class="rl-item"><span class="rl-dot rd-day"></span>Day</span>
+      <span class="rl-item"><span class="rl-dot rd-night"></span>Night</span>
+      <span class="rl-item"><span class="rl-dot rd-48h"></span>48H</span>
+      <span class="rl-item"><span class="rl-dot rd-work"></span>Working</span>
+      <span class="rl-item"><span class="rl-dot rd-off"></span>Off</span>
+      <span class="rl-item"><span class="rl-dot rd-leave"></span>On Leave</span>
+    </div>
+    <div id="rosterGrid"><div class="empty-state">Loading roster…</div></div>
+  </main>
+
+  <nav class="staff-bnav">
+    <a href="staff.html" class="bnav-btn"><span class="bnav-icon">⊞</span><span>Overview</span></a>
+    <a href="staff.html" class="bnav-btn"><span class="bnav-icon">＋</span><span>Request</span></a>
+    <a href="staff.html" class="bnav-btn"><span class="bnav-icon">☰</span><span>History</span></a>
+    <button class="bnav-btn active"><span class="bnav-icon">▦</span><span>Roster</span></button>
+  </nav>
+
+  <div id="toastWrap" class="toast-wrap"></div>
+
+  <script type="module">
+    import { auth, db } from "../js/firebase.js";
+    import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+    import { collection, doc, getDoc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { todayStr } from "../js/utils.js";
+
+    let ME=null, EMP=null, employees=[], approvedLeave=[], rosterData={};
+    let currentYear, currentMonth, viewMode="all";
+
+    const SHIFT_PATTERNS = {
+      "2D2N2O":{cycle:6,days:["D","D","N","N","O","O"]},
+      "48H4O": {cycle:6,days:["48","48","O","O","O","O"]},
+      "3W3O":  {cycle:6,days:["W","W","W","O","O","O"]},
+      "4W3O":  {cycle:7,days:["W","W","W","W","O","O","O"]},
+      "4W4O":  {cycle:8,days:["W","W","W","W","O","O","O","O"]},
+      "5W2O":  {cycle:7,days:["W","W","W","W","W","O","O"]},
+      "GD":    {cycle:7,days:["W","W","W","W","O","O","O"]},
+    };
+    const DL={D:"D",N:"N","48":"48H",W:"W",O:"O"};
+    const DC={D:"rd-day",N:"rd-night","48":"rd-48h",W:"rd-work",O:"rd-off",AL:"rd-leave"};
+
+    function rk(y,m){return `${y}-${String(m+1).padStart(2,"0")}`;}
+
+    onAuthStateChanged(auth, async(user)=>{
+      if (!user){window.location.href="../index.html";return;}
+      ME=user;
+      const s=await getDoc(doc(db,"employees",ME.uid));
+      if (!s.exists()){window.location.href="../index.html";return;}
+      EMP={id:s.id,...s.data()};
+      document.getElementById("navInitials").textContent=(EMP.name||"?")[0].toUpperCase();
+      document.getElementById("navName").textContent=EMP.name||ME.email;
+      document.getElementById("navGroup").textContent=EMP.groupId||"";
+      const now=new Date(); currentYear=now.getFullYear(); currentMonth=now.getMonth();
+      document.getElementById("logoutBtn").addEventListener("click",()=>signOut(auth).then(()=>window.location.href="../index.html"));
+      onSnapshot(query(collection(db,"employees"),orderBy("name")),snap=>{employees=snap.docs.map(d=>({id:d.id,...d.data()})).filter(e=>!e.deleted);renderRoster();});
+      onSnapshot(collection(db,"leaveRequests"),snap=>{approvedLeave=snap.docs.map(d=>({id:d.id,...d.data()})).filter(r=>r.status==="Approved");renderRoster();});
+      loadMonth();
+    });
+
+    function loadMonth(){
+      const key=rk(currentYear,currentMonth);
+      onSnapshot(collection(db,`rosterData/${key}/entries`),snap=>{
+        rosterData[key]={};
+        snap.docs.forEach(d=>{rosterData[key][d.id]=d.data();});
+        renderRoster();
+      });
+    }
+
+    function cell(emp,ds,rm){
+      const ol=approvedLeave.find(r=>r.employeeId===emp.id&&r.startDate<=ds&&r.endDate>=ds);
+      if(ol) return{label:"AL",cls:"rd-leave"};
+      if(rm[ds]){const t=rm[ds].type;return{label:DL[t]||t,cls:DC[t]||"rd-off"};}
+      const p=emp.pattern||"GD";
+      if(p==="GD"||emp.dept==="GD"){const wd=new Date(ds+"T00:00:00").getDay();return wd>=1&&wd<=4?{label:"W",cls:"rd-work"}:{label:"O",cls:"rd-off"};}
+      if(!emp.rosterStart) return{label:"?",cls:"rd-unknown"};
+      const pat=SHIFT_PATTERNS[p];
+      if(!pat) return{label:"?",cls:"rd-unknown"};
+      const diff=Math.round((new Date(ds+"T00:00:00")-new Date(emp.rosterStart+"T00:00:00"))/86400000);
+      const pos=((diff%pat.cycle)+pat.cycle)%pat.cycle;
+      const t=pat.days[pos]||"O";
+      return{label:DL[t]||t,cls:DC[t]||"rd-off"};
+    }
+
+    function renderRoster(){
+      const el=document.getElementById("rosterGrid");
+      if(!el||!EMP) return;
+      const key=rk(currentYear,currentMonth);
+      const first=new Date(currentYear,currentMonth,1);
+      const last=new Date(currentYear,currentMonth+1,0);
+      const days=last.getDate();
+      const today=todayStr();
+      document.getElementById("rosterMonthLabel").textContent=first.toLocaleDateString("en-GB",{month:"long",year:"numeric"});
+      let emps=[...employees];
+      if(viewMode==="group") emps=emps.filter(e=>e.groupId===EMP.groupId);
+      if(viewMode==="me")    emps=emps.filter(e=>e.id===ME.uid);
+      if(!emps.length){el.innerHTML=`<div class="empty-state">No staff found.</div>`;return;}
+      const hdrs=[];
+      for(let d=1;d<=days;d++){
+        const ds=`${currentYear}-${String(currentMonth+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
+        const wd=new Date(ds+"T00:00:00").getDay();
+        hdrs.push({d,ds,wd,isWeekend:wd===0||wd===5||wd===6,isToday:ds===today,wdL:["Su","Mo","Tu","We","Th","Fr","Sa"][wd]});
+      }
+      const groups=[...new Set(emps.map(e=>e.groupId||"Unassigned"))];
+      let html=`<div class="roster-table-wrap"><table class="roster-table"><thead><tr>
+        <th class="roster-name-col">Employee</th>
+        ${hdrs.map(h=>`<th class="roster-day-hdr${h.isWeekend?" rd-weekend-hdr":""}${h.isToday?" roster-today-hdr":""}">${h.d}<br/><span class="roster-wd">${h.wdL}</span></th>`).join("")}
+      </tr></thead><tbody>`;
+      groups.forEach(grp=>{
+        const ge=emps.filter(e=>(e.groupId||"Unassigned")===grp);
+        html+=`<tr class="roster-group-row"><td colspan="${days+1}" class="roster-group-hdr">${grp}</td></tr>`;
+        ge.forEach(emp=>{
+          const rm=rosterData[key]?.[emp.id]||{};
+          const isMe=emp.id===ME.uid;
+          html+=`<tr class="roster-emp-row${isMe?" roster-me-row":""}"><td class="roster-name-cell"><div class="roster-emp-name">${emp.name}${isMe?" ★":""}</div></td>`;
+          hdrs.forEach(({ds,isWeekend,isToday})=>{
+            const c=cell(emp,ds,rm);
+            html+=`<td class="roster-cell ${c.cls}${isWeekend?" rd-weekend":""}${isToday?" roster-today-cell":""}"><span class="roster-cell-label">${c.label}</span></td>`;
+          });
+          html+=`</tr>`;
+        });
+      });
+      html+=`</tbody></table></div>`;
+      el.innerHTML=html;
+    }
+
+    window.rosterPrevMonth=()=>{if(currentMonth===0){currentMonth=11;currentYear--;}else currentMonth--;loadMonth();};
+    window.rosterNextMonth=()=>{if(currentMonth===11){currentMonth=0;currentYear++;}else currentMonth++;loadMonth();};
+    window.changeView=v=>{viewMode=v;renderRoster();};
+  </script>
+</body>
+</html>
