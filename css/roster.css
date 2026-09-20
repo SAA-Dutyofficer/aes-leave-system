@@ -86,10 +86,12 @@
 .rd-swap     { background:#fce7f3; color:#9d174d; font-weight:700; }
 .rd-unknown  { background:#f1f5f9; color:#94a3b8; }
 
-/* Weekend columns - more visible */
-.rd-weekend { background:#dde3ed !important; }
-.rd-weekend .roster-cell-label { color:#475569 !important; font-weight:600; }
-.rd-weekend-hdr { background:rgba(255,255,255,.2) !important; color:rgba(255,255,255,.7) !important; }
+/* Weekend columns - strong override */
+td.rd-weekend,
+.roster-cell.rd-weekend { background:#c8d3e6 !important; }
+.roster-cell.rd-weekend .roster-cell-label { color:#475569 !important; font-weight:600 !important; }
+th.rd-weekend-hdr,
+.roster-day-hdr.rd-weekend-hdr { background:rgba(255,255,255,.25) !important; color:rgba(255,255,255,.8) !important; }
 
 /* ── Swap cards ─────────────────────────────────────────────────── */
 .swap-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; }
