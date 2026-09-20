@@ -14,7 +14,7 @@
   <!-- Sidebar -->
   <aside class="mgr-sidebar">
     <div class="sidebar-brand">
-      <img src="../assets/logo.png" alt="" class="sidebar-logo" onerror="this.style.display='none'"/>
+      <img src="../assets/logo.png" alt="" class="sidebar-logo"/>
       <div class="sidebar-brand-text">
         <div class="sb-title">AES Fire &amp; Rescue</div>
         <div class="sb-sub">Roster Management</div>
@@ -115,14 +115,30 @@
           <div class="form-field">
             <label>Shift Type</label>
             <select id="cellType">
-              <option value="D">D — Day Shift</option>
-              <option value="N">N — Night Shift</option>
-              <option value="48">48H — 48hr Duty</option>
-              <option value="W">W — Working Day</option>
-              <option value="O">O — Off Day</option>
-              <option value="AL">AL — Annual Leave</option>
-              <option value="SL">SL — Sick Leave</option>
-              <option value="HL">HL — Public Holiday</option>
+              <optgroup label="Shift Types">
+                <option value="D">D — Day Shift</option>
+                <option value="N">N — Night Shift</option>
+                <option value="48">48H — 48hr Duty</option>
+                <option value="W">W — Working Day</option>
+                <option value="O">O — Off Day</option>
+              </optgroup>
+              <optgroup label="Leave Types">
+                <option value="AL">AL — Annual Leave</option>
+                <option value="SL">SL — Sick Leave</option>
+                <option value="UL">UL — Unpaid Leave</option>
+                <option value="CL">CL — Comp Leave</option>
+                <option value="EL">EL — Emergency Leave</option>
+                <option value="PL">PL — Paternity Leave</option>
+                <option value="HL2">HL — Hajj Leave</option>
+                <option value="ST">ST — Study Leave</option>
+                <option value="FA">FA — Family Accompanied Leave</option>
+                <option value="NS">NS — National Service</option>
+                <option value="EX">EX — Exam Leave</option>
+              </optgroup>
+              <optgroup label="Other">
+                <option value="HL">PH — Public Holiday</option>
+                <option value="SWAP">SW — Shift Swap</option>
+              </optgroup>
             </select>
           </div>
           <div class="modal-actions">
