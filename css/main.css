@@ -64,7 +64,7 @@ body { font-family:'Inter',sans-serif; font-size:14px; color:var(--gray-800); ba
   background:url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
 }
 .auth-brand-mark { text-align:center; position:relative; z-index:1; }
-.auth-logo { height:80px; margin-bottom:20px; filter:brightness(0) invert(1); opacity:.9; }
+.auth-logo { height:80px; margin-bottom:20px; }
 .auth-dept { font-size:13px; font-weight:600; letter-spacing:2px; text-transform:uppercase; color:rgba(255,255,255,.6); margin-bottom:8px; }
 .auth-system-name { font-size:26px; font-weight:800; line-height:1.2; text-align:center; }
 .auth-tagline { margin-top:40px; font-size:13px; color:rgba(255,255,255,.4); letter-spacing:3px; text-transform:uppercase; position:relative; z-index:1; }
@@ -170,7 +170,7 @@ select { cursor:pointer; }
   padding:0 20px; box-shadow:0 2px 12px rgba(0,0,0,.2);
 }
 .topnav-brand { display:flex; align-items:center; gap:10px; }
-.nav-logo-img { height:32px; filter:brightness(0) invert(1); opacity:.9; }
+.nav-logo-img { height:32px; }
 .nav-brand-text { font-weight:700; font-size:15px; }
 
 .topnav-user { display:flex; align-items:center; gap:10px; }
@@ -207,7 +207,7 @@ select { cursor:pointer; }
   z-index:50; box-shadow:2px 0 16px rgba(0,0,0,.2);
 }
 .sidebar-brand { display:flex; align-items:center; gap:12px; padding:20px 16px; border-bottom:1px solid rgba(255,255,255,.08); }
-.sidebar-logo  { height:36px; filter:brightness(0) invert(1); opacity:.9; }
+.sidebar-logo  { height:36px; }
 .sb-title { font-weight:700; font-size:13px; }
 .sb-sub   { font-size:10px; color:rgba(255,255,255,.45); margin-top:1px; }
 
@@ -507,7 +507,7 @@ select { cursor:pointer; }
     position:sticky; top:0; z-index:100; box-shadow:0 2px 8px rgba(0,0,0,.2);
   }
   .mmh-brand { display:flex; align-items:center; gap:8px; font-weight:700; font-size:14px; }
-  .mmh-logo  { height:28px; filter:brightness(0) invert(1); opacity:.9; }
+  .mmh-logo  { height:28px; }
   .mmh-user  { display:flex; align-items:center; gap:8px; }
   .mmh-role  { font-size:11px; color:rgba(255,255,255,.5); }
 
@@ -544,3 +544,9 @@ select { cursor:pointer; }
 /* ── Roster sidebar link ──────────────────────────────────────── */
 .snav-roster { text-decoration:none; color:rgba(255,255,255,.6); border-top:1px solid rgba(255,255,255,.08); margin-top:8px; padding-top:12px; }
 .snav-roster:hover { background:rgba(255,255,255,.06); color:white; }
+
+/* ── Icon mark (replaces logo) ────────────────────────────────── */
+.auth-icon-mark { font-size:64px; margin-bottom:16px; filter:drop-shadow(0 4px 12px rgba(0,0,0,.3)); }
+.sidebar-icon-mark { font-size:28px; flex-shrink:0; }
+.nav-icon-mark { font-size:22px; }
+.mmh-icon { font-size:20px; }
