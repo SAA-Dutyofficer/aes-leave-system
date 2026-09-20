@@ -20,16 +20,24 @@ const SHIFT_PATTERNS = {
   "GD":      { label:"GD (Mon–Thu)",           cycle:7,  days:["W","W","W","W","O","O","O"], gdMode:true },
 };
 
-const DAY_LABELS = { D:"D", N:"N", "48":"48H", W:"W", O:"O" };
+const DAY_LABELS = { D:"D", N:"N", "48":"48H", W:"W", O:"O", AL:"AL", SL:"SL", UL:"UL", CL:"CL", EL:"EL", PL:"PL", HL2:"HL", ST:"ST", FA:"FA", NS:"NS", EX:"EX", HL:"HL" };
 const DAY_CLASSES = {
   D:   "rd-day",
   N:   "rd-night",
   "48":"rd-48h",
   W:   "rd-work",
   O:   "rd-off",
-  AL:  "rd-leave",   // Approved leave
-  SL:  "rd-leave",
-  EL:  "rd-leave",
+  AL:  "rd-leave-al",
+  SL:  "rd-leave-sl",
+  UL:  "rd-leave-ul",
+  CL:  "rd-leave-cl",
+  EL:  "rd-leave-el",
+  PL:  "rd-leave-pl",
+  HL2: "rd-leave-hl",
+  ST:  "rd-leave-st",
+  FA:  "rd-leave-fa",
+  NS:  "rd-leave-ns",
+  EX:  "rd-leave-ex",
   HL:  "rd-holiday",
   SWAP:"rd-swap",
 };
@@ -186,9 +194,18 @@ function renderRoster() {
 }
 
 function getCellData(emp, ds, dayNum, empRoster, isWeekend) {
-  // 1. Check approved leave first
+  // 1. Check approved leave first — map leave type to cell code
   const onLeave = approvedLeave.find(r=>r.employeeId===emp.id && r.startDate<=ds && r.endDate>=ds);
-  if (onLeave) return { type:"AL", label:"AL", cls:"rd-leave" };
+  if (onLeave) {
+    const leaveTypeMap = {
+      "Annual Leave":"AL", "Sick Leave":"SL", "Unpaid Leave":"UL",
+      "Comp Leave":"CL", "Emergency Leave":"EL", "Paternity Leave":"PL",
+      "Hajj Leave":"HL2", "Study Leave":"ST", "Family Accompanied Leave":"FA",
+      "National Service":"NS", "Exam Leave":"EX"
+    };
+    const code = leaveTypeMap[onLeave.leaveType] || "AL";
+    return { type:code, label:DAY_LABELS[code]||code, cls:DAY_CLASSES[code]||"rd-leave-al" };
+  }
 
   // 2. Check manual roster entry
   if (empRoster[ds]) {
