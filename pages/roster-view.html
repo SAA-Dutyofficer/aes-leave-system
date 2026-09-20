@@ -78,7 +78,7 @@
       "GD":    {cycle:7,days:["W","W","W","W","O","O","O"]},
     };
     const DL={D:"D",N:"N","48":"48H",W:"W",O:"O"};
-    const DC={D:"rd-day",N:"rd-night","48":"rd-48h",W:"rd-work",O:"rd-off",AL:"rd-leave"};
+    const DC={D:"rd-day",N:"rd-night","48":"rd-48h",W:"rd-work",O:"rd-off",AL:"rd-leave-al",SL:"rd-leave-sl",UL:"rd-leave-ul",CL:"rd-leave-cl",EL:"rd-leave-el",PL:"rd-leave-pl",HL2:"rd-leave-hl",ST:"rd-leave-st",FA:"rd-leave-fa",NS:"rd-leave-ns",EX:"rd-leave-ex",HL:"rd-holiday",SWAP:"rd-swap"};
 
     function rk(y,m){return `${y}-${String(m+1).padStart(2,"0")}`;}
 
@@ -109,7 +109,7 @@
 
     function cell(emp,ds,rm){
       const ol=approvedLeave.find(r=>r.employeeId===emp.id&&r.startDate<=ds&&r.endDate>=ds);
-      if(ol) return{label:"AL",cls:"rd-leave"};
+      if(ol){const lm={"Annual Leave":"AL","Sick Leave":"SL","Unpaid Leave":"UL","Comp Leave":"CL","Emergency Leave":"EL","Paternity Leave":"PL","Hajj Leave":"HL2","Study Leave":"ST","Family Accompanied Leave":"FA","National Service":"NS","Exam Leave":"EX"};const c=lm[ol.leaveType]||"AL";return{label:DL[c]||c,cls:DC[c]||"rd-leave-al"};}
       if(rm[ds]){const t=rm[ds].type;return{label:DL[t]||t,cls:DC[t]||"rd-off"};}
       const p=emp.pattern||"GD";
       if(p==="GD"||emp.dept==="GD"){const wd=new Date(ds+"T00:00:00").getDay();return wd>=1&&wd<=4?{label:"W",cls:"rd-work"}:{label:"O",cls:"rd-off"};}
