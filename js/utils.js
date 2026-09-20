@@ -11,10 +11,11 @@ export const ROLES = {
   supervisor:  "Watch Room Supervisor",
   fire_admin:  "Fire Admin",
   section_head:"Section Head",
-  director:    "Director (Fire Chief)"
+  director:    "Director (Fire Chief)",
+  superadmin:  "Super Admin"
 };
 
-export const APPROVER_ROLES = ["officer","supervisor","fire_admin","section_head","director"];
+export const APPROVER_ROLES = ["officer","supervisor","fire_admin","section_head","director","superadmin"];
 
 export const LEAVE_TYPES = [
   "Annual Leave",
