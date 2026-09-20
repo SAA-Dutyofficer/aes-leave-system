@@ -153,3 +153,12 @@ th.rd-weekend-hdr,
 .rd-leave-fa { background:#fdf4ff; color:#7e22ce; font-weight:700; }
 .rd-leave-ns { background:#f0f9ff; color:#0369a1; font-weight:700; }
 .rd-leave-ex { background:#f0fdf4; color:#15803d; font-weight:700; }
+
+/* ── Weekend fix — data attribute overrides table background ──── */
+.roster-table td[data-weekend="1"] {
+  background:#c8d3e6 !important;
+  color:#475569 !important;
+}
+th[data-weekend="1"] {
+  background:rgba(255,255,255,.2) !important;
+}
