@@ -7,8 +7,9 @@ import { collection, doc, getDoc, addDoc, updateDoc, onSnapshot,
          query, where, orderBy, serverTimestamp }
   from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { fmtDate, todayStr, getCurrentCycle, daysUntilExpiry, countLeaveDays,
-         detectClashes, getShiftDayType, isShiftWorkDay, LEAVE_TYPES,
-         SHIFT_GROUPS, getApprovalChain, statusBadge, toast, annualLeaveRequestsThisCycle } from "./utils.js";
+         validateLeaveDates, detectClashes, getShiftDayType, LEAVE_TYPES_UNIQUE,
+         WORKDAY_TYPES, SHIFT_GROUPS, getApprovalChain, statusBadge, toast,
+         annualLeaveRequestsThisCycle } from "./utils.js";
 import { sendEmail } from "./email.js";
 
 let ME = null, EMP = null, myRequests = [], groupRequests = [];
@@ -78,36 +79,73 @@ function renderOverview() {
   const { start, end } = getCurrentCycle(EMP.joinDate);
   const ent = EMP.entitlement || 0;
 
-  const approvedDays = myRequests
-    .filter(r => r.leaveType==="Annual Leave" && r.status==="Approved" && r.startDate>=start && r.startDate<=end)
-    .reduce((s,r) => s+(r.workDays||0), 0);
-
-  const pendingDays = myRequests
-    .filter(r => r.leaveType==="Annual Leave" && !["Approved","Rejected","Cancelled"].includes(r.status) && r.startDate>=start && r.startDate<=end)
-    .reduce((s,r) => s+(r.workDays||0), 0);
-
-  const unpaidDays = myRequests
-    .filter(r => r.leaveType==="Unpaid Leave" && r.status==="Approved" && r.startDate>=start && r.startDate<=end)
-    .reduce((s,r) => s+(r.workDays||0), 0);
-
-  const remaining = Math.max(0, ent - approvedDays);
-  const pct = ent ? Math.min(100, Math.round(approvedDays/ent*100)) : 0;
+  // Annual leave stats
+  const annualUsed = myRequests
+    .filter(r=>r.leaveType==="Annual Leave"&&r.status==="Approved"&&r.startDate>=start&&r.startDate<=end)
+    .reduce((s,r)=>s+(r.workDays||0),0);
+  const annualPending = myRequests
+    .filter(r=>r.leaveType==="Annual Leave"&&!["Approved","Rejected","Cancelled"].includes(r.status)&&r.startDate>=start&&r.startDate<=end)
+    .reduce((s,r)=>s+(r.workDays||0),0);
+  const remaining = Math.max(0, ent - annualUsed);
+  const pct = ent ? Math.min(100,Math.round(annualUsed/ent*100)) : 0;
   const daysLeft = daysUntilExpiry(EMP.joinDate);
 
-  document.getElementById("ovEntitlement").textContent = ent;
-  document.getElementById("ovUsed").textContent        = approvedDays;
-  document.getElementById("ovPending").textContent     = pendingDays;
-  document.getElementById("ovRemaining").textContent   = remaining;
-  document.getElementById("ovUnpaid").textContent      = unpaidDays;
-  document.getElementById("ovCycle").textContent       = `${fmtDate(start)} — ${fmtDate(end)}`;
-  document.getElementById("ovExpiry").textContent      = daysLeft !== null ? `${daysLeft} days until renewal` : "--";
-  document.getElementById("ovBar").style.width         = pct + "%";
-  document.getElementById("ovBarPct").textContent      = pct + "%";
+  document.getElementById("ovBarPct").textContent      = pct+"%";
+  document.getElementById("ovBar").style.width         = pct+"%";
   document.getElementById("ovBar").className           = `ov-bar-fill ${pct>=100?"bar-danger":pct>=80?"bar-warn":"bar-ok"}`;
+  document.getElementById("ovCycle").textContent       = `${fmtDate(start)} — ${fmtDate(end)}`;
+  document.getElementById("ovExpiry").textContent      = daysLeft!==null?`${daysLeft} days until renewal`:"--";
+
+  // Build compact leave balance cards for each type
+  const grid = document.getElementById("leaveBalanceGrid");
+  if (grid) {
+    const cards = LEAVE_TYPES_UNIQUE.map(lt => {
+      const { start:cs, end:ce } = getCurrentCycle(EMP.joinDate);
+
+      let used = 0, typeEnt = lt.entitlement;
+
+      if (lt.cycleType === "oneTime") {
+        // Hajj — count all time
+        used = myRequests.filter(r=>r.leaveType===lt.key&&r.status==="Approved").reduce((s,r)=>s+(r.workDays||0),0);
+      } else if (lt.cycleType === "perEvent") {
+        // Paternity — count since last reset (last approved batch)
+        const approved = myRequests.filter(r=>r.leaveType===lt.key&&r.status==="Approved").sort((a,b)=>b.startDate.localeCompare(a.startDate));
+        used = approved.length ? (approved[0].workDays||0) : 0;
+        typeEnt = lt.entitlement;
+      } else if (lt.cycleType === "joining") {
+        used = myRequests.filter(r=>r.leaveType===lt.key&&r.status==="Approved"&&r.startDate>=cs&&r.startDate<=ce).reduce((s,r)=>s+(r.workDays||0),0);
+        // Use employee-specific entitlement for annual, fixed for others
+        if (lt.key==="Annual Leave") typeEnt = ent;
+      } else {
+        // Custom — just sum all approved
+        used = myRequests.filter(r=>r.leaveType===lt.key&&r.status==="Approved").reduce((s,r)=>s+(r.workDays||0),0);
+        typeEnt = null; // no fixed entitlement
+      }
+
+      const pending = myRequests.filter(r=>r.leaveType===lt.key&&!["Approved","Rejected","Cancelled"].includes(r.status)).reduce((s,r)=>s+(r.workDays||0),0);
+      const rem = typeEnt!==null ? Math.max(0,typeEnt-used) : null;
+      const barPct = typeEnt ? Math.min(100,Math.round(used/typeEnt*100)) : 0;
+      const isHajjUsed = lt.cycleType==="oneTime" && used>=lt.entitlement;
+
+      return `<div class="lb-card lb-${lt.color||"slate"}">
+        <div class="lb-type">${lt.label}</div>
+        <div class="lb-nums">
+          <span class="lb-used">${used}</span>
+          ${typeEnt!==null?`<span class="lb-sep">/</span><span class="lb-ent">${typeEnt}</span>`:`<span class="lb-sep"> used</span>`}
+        </div>
+        ${rem!==null&&!isHajjUsed?`<div class="lb-rem">${rem} remaining</div>`:""}
+        ${pending>0?`<div class="lb-pending">${pending} pending</div>`:""}
+        ${isHajjUsed?`<div class="lb-onetag">✓ Used</div>`:""}
+        ${lt.cycleType==="perEvent"?`<div class="lb-rem">Resets per event</div>`:""}
+        ${lt.key==="Annual Leave"?`<div class="lb-bar-wrap"><div class="lb-bar" style="width:${barPct}%"></div></div>`:""}
+      </div>`;
+    }).join("");
+    grid.innerHTML = cards;
+  }
 
   // Upcoming
   const today = todayStr();
-  const upcoming = myRequests.filter(r => r.endDate>=today && !["Rejected","Cancelled"].includes(r.status)).slice(0,5);
+  const upcoming = myRequests.filter(r=>r.endDate>=today&&!["Rejected","Cancelled"].includes(r.status)).slice(0,5);
   const upEl = document.getElementById("upcomingList");
   upEl.innerHTML = upcoming.length ? upcoming.map(r=>`
     <div class="list-row">
@@ -154,7 +192,7 @@ function renderCalendar() {
 
   if (calSelStart) {
     const selEnd = calSelEnd || calSelStart;
-    const days = countLeaveDays(calSelStart, selEnd);
+    const days = countLeaveDays(calSelStart, selEnd, document.getElementById("fLeaveType").value);
     html += `<div class="cal-sel-info">
       ${calSelStart === calSelEnd || !calSelEnd
         ? `Start: <strong>${fmtDate(calSelStart)}</strong> — click end date`
@@ -257,36 +295,52 @@ function updatePreview() {
   warnEl.style.display = "none";
   if (!start||!end||end<start) { preEl.style.display="none"; return; }
 
-  const days = countLeaveDays(start, end);
+  // Validate end date doesn't land on or after cycle boundary
+  const lt = LEAVE_TYPES_UNIQUE.find(t=>t.key===type);
+  if (lt?.cycleType==="joining" && EMP.joinDate) {
+    const err = validateLeaveDates(start, end, EMP.joinDate);
+    if (err) {
+      warnEl.innerHTML = `⚠️ ${err}`;
+      warnEl.style.display="block";
+      preEl.style.display="none";
+      return;
+    }
+  }
+
+  const days = countLeaveDays(start, end, type);
   document.getElementById("daysCount").textContent = days;
   preEl.style.display = "flex";
 
   if (type==="Annual Leave" && EMP.joinDate) {
     const { start:cs, end:ce } = getCurrentCycle(EMP.joinDate);
     const ent = EMP.entitlement || 0;
-    const used = myRequests
-      .filter(r=>r.leaveType==="Annual Leave"&&r.status==="Approved"&&r.startDate>=cs&&r.startDate<=ce)
-      .reduce((s,r)=>s+(r.workDays||0),0);
-    const remaining = ent - used;
-
-    // Check if request crosses cycle end
-    const crossesExpiry = end > ce;
-
-    if (crossesExpiry) {
-      warnEl.innerHTML = `⚠️ This request extends beyond your entitlement expiry date (<strong>${fmtDate(ce)}</strong>). Only days up to expiry will be counted. Please split your request or wait for renewal.`;
-      warnEl.style.display = "block";
-    } else if (days > remaining) {
-      warnEl.innerHTML = `⚠️ You only have <strong>${remaining}</strong> days remaining but selected <strong>${days}</strong> days.`;
-      warnEl.style.display = "block";
-    }
-
-    // Max requests check (shift=3, GD=4)
+    const used = myRequests.filter(r=>r.leaveType==="Annual Leave"&&r.status==="Approved"&&r.startDate>=cs&&r.startDate<=ce).reduce((s,r)=>s+(r.workDays||0),0);
     const maxReq = SHIFT_GROUPS.includes(EMP.groupId) ? 3 : 4;
     const reqCount = annualLeaveRequestsThisCycle(ME.uid, myRequests, EMP.joinDate);
     if (reqCount >= maxReq) {
-      warnEl.innerHTML = `⚠️ You have reached the maximum of <strong>${maxReq}</strong> Annual Leave requests for this cycle.`;
-      warnEl.style.display = "block";
+      warnEl.innerHTML=`⚠️ Maximum <strong>${maxReq}</strong> Annual Leave requests allowed this cycle.`;
+      warnEl.style.display="block";
+    } else if (days > ent-used) {
+      warnEl.innerHTML=`⚠️ Only <strong>${ent-used}</strong> days remaining but <strong>${days}</strong> selected.`;
+      warnEl.style.display="block";
     }
+  }
+  if (type==="Unpaid Leave" && EMP.joinDate) {
+    const { start:cs, end:ce } = getCurrentCycle(EMP.joinDate);
+    const used = myRequests.filter(r=>r.leaveType==="Unpaid Leave"&&r.status==="Approved"&&r.startDate>=cs&&r.startDate<=ce).reduce((s,r)=>s+(r.workDays||0),0);
+    if (days > 30-used) { warnEl.innerHTML=`⚠️ Only <strong>${30-used}</strong> Unpaid Leave days remaining this cycle.`; warnEl.style.display="block"; }
+  }
+  if (type==="Sick Leave" && EMP.joinDate) {
+    const { start:cs, end:ce } = getCurrentCycle(EMP.joinDate);
+    const used = myRequests.filter(r=>r.leaveType==="Sick Leave"&&r.status==="Approved"&&r.startDate>=cs&&r.startDate<=ce).reduce((s,r)=>s+(r.workDays||0),0);
+    if (days > 15-used) { warnEl.innerHTML=`⚠️ Only <strong>${15-used}</strong> Sick Leave days remaining this cycle.`; warnEl.style.display="block"; }
+  }
+  if (type==="Paternity Leave" && days > 4) {
+    warnEl.innerHTML=`⚠️ Paternity Leave is limited to <strong>4 working days</strong>.`; warnEl.style.display="block";
+  }
+  if (type==="Hajj Leave") {
+    const everUsed = myRequests.filter(r=>r.leaveType==="Hajj Leave"&&r.status==="Approved").length;
+    if (everUsed > 0) { warnEl.innerHTML=`⚠️ Hajj Leave has already been used. This is a one-time entitlement.`; warnEl.style.display="block"; }
   }
 }
 
@@ -303,7 +357,7 @@ async function submitRequest(e) {
 
   if (!start||!end||end<start) { errEl.textContent="Invalid dates."; btn.disabled=false; btn.textContent="Submit Request"; return; }
 
-  const days = countLeaveDays(start, end);
+  const days = countLeaveDays(start, end, type);
   if (days===0) { errEl.textContent="No working days (Mon–Thu) in selected range."; btn.disabled=false; btn.textContent="Submit Request"; return; }
 
   // Check entitlement for annual leave
@@ -447,7 +501,7 @@ document.getElementById("editForm").addEventListener("submit", async (e) => {
   const type  = document.getElementById("editLeaveType").value;
   const notes = document.getElementById("editNotes").value.trim();
   if (!start||!end||end<start) { errEl.textContent="Invalid dates."; return; }
-  const days = countLeaveDays(start, end);
+  const days = countLeaveDays(start, end, type);
   if (days===0) { errEl.textContent="No working days in range."; return; }
   const chain = getApprovalChain(EMP.groupId, EMP.role);
   try {
