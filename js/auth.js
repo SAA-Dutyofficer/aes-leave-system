@@ -90,6 +90,6 @@ async function getRole(uid) {
 }
 
 function redirect(role) {
-  const approvers = ["officer","supervisor","fire_admin","section_head","director"];
+  const approvers = ["officer","supervisor","fire_admin","section_head","director","superadmin"];
   window.location.href = approvers.includes(role) ? "pages/manager.html" : "pages/staff.html";
 }
