@@ -109,17 +109,17 @@
 
     function cell(emp,ds,rm){
       const ol=approvedLeave.find(r=>r.employeeId===emp.id&&r.startDate<=ds&&r.endDate>=ds);
-      if(ol){const lm={"Annual Leave":"AL","Sick Leave":"SL","Unpaid Leave":"UL","Comp Leave":"CL","Emergency Leave":"EL","Paternity Leave":"PL","Hajj Leave":"HL2","Study Leave":"ST","Family Accompanied Leave":"FA","National Service":"NS","Exam Leave":"EX"};const c=lm[ol.leaveType]||"AL";return{label:DL[c]||c,cls:DC[c]||"rd-leave-al"};}
-      if(rm[ds]){const t=rm[ds].type;return{label:DL[t]||t,cls:DC[t]||"rd-off"};}
+      if(ol){const lm={"Annual Leave":"AL","Sick Leave":"SL","Unpaid Leave":"UL","Comp Leave":"CL","Emergency Leave":"EL","Paternity Leave":"PL","Hajj Leave":"HL2","Study Leave":"ST","Family Accompanied Leave":"FA","National Service":"NS","Exam Leave":"EX"};const c=lm[ol.leaveType]||"AL";return{type:c,label:DL[c]||c,cls:DC[c]||"rd-leave-al"};}
+      if(rm[ds]){const t=rm[ds].type;return{type:t,label:DL[t]||t,cls:DC[t]||"rd-off"};}
       const p=emp.pattern||"GD";
       if(p==="GD"||emp.dept==="GD"){const wd=new Date(ds+"T00:00:00").getDay();return wd>=1&&wd<=4?{label:"W",cls:"rd-work"}:{label:"O",cls:"rd-off"};}
       if(!emp.rosterStart) return{label:"?",cls:"rd-unknown"};
       const pat=SHIFT_PATTERNS[p];
-      if(!pat) return{label:"?",cls:"rd-unknown"};
+      if(!pat) return{type:"?",label:"?",cls:"rd-unknown"};
       const diff=Math.round((new Date(ds+"T00:00:00")-new Date(emp.rosterStart+"T00:00:00"))/86400000);
       const pos=((diff%pat.cycle)+pat.cycle)%pat.cycle;
       const t=pat.days[pos]||"O";
-      return{label:DL[t]||t,cls:DC[t]||"rd-off"};
+      return{type:t,label:DL[t]||t,cls:DC[t]||"rd-off"};
     }
 
     function renderRoster(){
@@ -155,8 +155,8 @@
           html+=`<tr class="roster-emp-row${isMe?" roster-me-row":""}"><td class="roster-name-cell"><div class="roster-emp-name">${emp.name}${isMe?" ★":""}</div></td>`;
           hdrs.forEach(({ds,isWeekend,isToday})=>{
             const c=cell(emp,ds,rm);
-            const st=cs(c.cls);
-            html+=`<td class="roster-cell${isWeekend?" rd-weekend":""}${isToday?" roster-today-cell":""}" style="${st}"><span class="roster-cell-label">${c.label}</span></td>`;
+            const st=cs(c.type,isWeekend);
+            html+=`<td class="roster-cell${isToday?" roster-today-cell":""}" style="${st}${isToday?"outline:2px solid #b91c1c;outline-offset:-2px;":""}"><span class="roster-cell-label">${c.label}</span></td>`;
           });
           html+=`</tr>`;
         });
@@ -165,7 +165,7 @@
       el.innerHTML=html;
     }
 
-    function cs(cls){const s={"rd-day":"background:#dbeafe;color:#1e40af;","rd-night":"background:#ede9fe;color:#5b21b6;","rd-48h":"background:#c7d7fe;color:#1e3a8a;","rd-work":"background:#d1fae5;color:#065f46;","rd-off":"background:#e2e8f0;color:#64748b;","rd-leave-al":"background:#fee2e2;color:#991b1b;","rd-leave-sl":"background:#fef3c7;color:#92400e;","rd-leave-ul":"background:#f3f4f6;color:#374151;","rd-leave-cl":"background:#fce7f3;color:#9d174d;","rd-leave-el":"background:#fff7ed;color:#c2410c;","rd-leave-pl":"background:#ecfdf5;color:#065f46;","rd-leave-hl":"background:#fdf4ff;color:#7e22ce;","rd-leave-st":"background:#eff6ff;color:#1d4ed8;","rd-leave-fa":"background:#fdf4ff;color:#7e22ce;","rd-leave-ns":"background:#f0f9ff;color:#0369a1;","rd-leave-ex":"background:#f0fdf4;color:#15803d;","rd-holiday":"background:#fef9c3;color:#854d0e;","rd-unknown":"background:#f1f5f9;color:#94a3b8;"};return s[cls]||"";}
+    function cs(type,isWk){const S={D:"background:#dbeafe;color:#1e40af;font-weight:700;",N:"background:#ede9fe;color:#5b21b6;font-weight:700;","48":"background:#c7d7fe;color:#1e3a8a;font-weight:700;",W:"background:#d1fae5;color:#065f46;font-weight:600;",O:"background:#e2e8f0;color:#64748b;font-weight:500;",AL:"background:#fee2e2;color:#991b1b;font-weight:700;",SL:"background:#fef3c7;color:#92400e;font-weight:700;",UL:"background:#f3f4f6;color:#374151;font-weight:700;",CL:"background:#fce7f3;color:#9d174d;font-weight:700;",EL:"background:#fff7ed;color:#c2410c;font-weight:700;",PL:"background:#ecfdf5;color:#065f46;font-weight:700;",HL2:"background:#fdf4ff;color:#7e22ce;font-weight:700;",ST:"background:#eff6ff;color:#1d4ed8;font-weight:700;",FA:"background:#fdf4ff;color:#7e22ce;font-weight:700;",NS:"background:#f0f9ff;color:#0369a1;font-weight:700;",EX:"background:#f0fdf4;color:#15803d;font-weight:700;",HL:"background:#fef9c3;color:#854d0e;font-weight:700;","?":"background:#f1f5f9;color:#94a3b8;"};if(isWk&&(type==="O"||type==="?"||!S[type]))return"background:#c8d3e6;color:#475569;font-weight:500;";return S[type]||"background:#f1f5f9;color:#94a3b8;";}
     window.rosterPrevMonth=()=>{if(currentMonth===0){currentMonth=11;currentYear--;}else currentMonth--;loadMonth();};
     window.rosterNextMonth=()=>{if(currentMonth===11){currentMonth=0;currentYear++;}else currentMonth++;loadMonth();};
     window.changeView=v=>{viewMode=v;renderRoster();};
