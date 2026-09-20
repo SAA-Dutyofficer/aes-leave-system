@@ -155,7 +155,7 @@ function renderRoster() {
       <tr>
         <th class="roster-name-col">Employee</th>
         <th class="roster-group-col">Group</th>
-        ${dateHeaders.map(h=>`<th class="roster-day-hdr ${h.isWeekend?"rd-weekend-hdr":""}">${h.d}<br/><span class="roster-wd">${h.wdLabel}</span></th>`).join("")}
+        ${dateHeaders.map(h=>`<th class="roster-day-hdr ${h.isWeekend?"rd-weekend-hdr":""}" ${h.isWeekend?"data-weekend=\"1\"":""}>${h.d}<br/><span class="roster-wd">${h.wdLabel}</span></th>`).join("")}
       </tr>
     </thead>
     <tbody>`;
@@ -179,7 +179,8 @@ function renderRoster() {
         const cell = getCellData(emp, ds, d, empRoster, isWeekend);
         const canEdit = ["fire_admin","section_head","director","superadmin"].includes(MGR.role);
         const style = getCellStyle(cell.type, isWeekend);
-        html += `<td class="roster-cell" style="${style}"
+        const wkData = isWeekend&&(cell.type==="O"||cell.type==="?")?'data-weekend="1"':"";
+        html += `<td class="roster-cell" ${wkData} style="${style}"
           ${canEdit?`onclick="openCellEditor('${emp.id}','${ds}','${emp.name}','${cell.type}')"`:""} 
           title="${emp.name} · ${ds}">
           <span class="roster-cell-label">${cell.label}</span>
@@ -262,7 +263,7 @@ function getCellStyle(type, isWeekend) {
     "?":  "background:#f1f5f9;color:#94a3b8;",
   };
   if (isWeekend && (type==="O"||type==="?"||!S[type])) {
-    return "background:#c8d3e6 !important;color:#475569;font-weight:500;";
+    return "background:#c8d3e6;color:#475569;font-weight:500;";
   }
   // For non-off types on weekends, show the shift type but with weekend tint
   if (isWeekend && S[type]) {
