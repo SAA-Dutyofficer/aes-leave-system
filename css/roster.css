@@ -74,8 +74,9 @@
 .rd-holiday { background:#fef3c7; color:#92400e; }
 .rd-swap    { background:#fce7f3; color:#9d174d; }
 .rd-unknown { background:#f1f5f9; color:#94a3b8; }
-.rd-weekend { background:#f1f5f9; }
-.rd-weekend-hdr { background:rgba(255,255,255,.08); }
+.rd-weekend { background:#eef2f7; border-left:1px solid #cbd5e1; border-right:1px solid #cbd5e1; }
+.rd-weekend .roster-cell-label { color:#64748b; font-weight:600; }
+.rd-weekend-hdr { background:rgba(255,255,255,.15) !important; }
 
 /* ── Swap cards ─────────────────────────────────────────────────── */
 .swap-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; }
