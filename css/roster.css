@@ -27,7 +27,8 @@
 /* ── Roster Table ───────────────────────────────────────────────── */
 .roster-table-wrap { overflow-x:auto; border-radius:var(--radius); box-shadow:var(--shadow); border:1px solid var(--gray-200); }
 
-.roster-table { border-collapse:collapse; min-width:100%; background:white; }
+.roster-table { border-collapse:collapse; min-width:100%; }
+.roster-table td { background:transparent; }
 
 .roster-table thead th { 
   background:var(--navy); color:rgba(255,255,255,.85); 
