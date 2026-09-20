@@ -261,9 +261,12 @@ function getCellStyle(type, isWeekend) {
     SWAP: "background:#fce7f3;color:#9d174d;font-weight:700;",
     "?":  "background:#f1f5f9;color:#94a3b8;",
   };
-  // Weekend off days get a distinct grey
   if (isWeekend && (type==="O"||type==="?"||!S[type])) {
-    return "background:#c8d3e6;color:#475569;font-weight:500;";
+    return "background:#c8d3e6 !important;color:#475569;font-weight:500;";
+  }
+  // For non-off types on weekends, show the shift type but with weekend tint
+  if (isWeekend && S[type]) {
+    return S[type];
   }
   return S[type] || "background:#f1f5f9;color:#94a3b8;";
 }
