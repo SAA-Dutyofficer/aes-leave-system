@@ -155,7 +155,8 @@
           html+=`<tr class="roster-emp-row${isMe?" roster-me-row":""}"><td class="roster-name-cell"><div class="roster-emp-name">${emp.name}${isMe?" ★":""}</div></td>`;
           hdrs.forEach(({ds,isWeekend,isToday})=>{
             const c=cell(emp,ds,rm);
-            html+=`<td class="roster-cell ${c.cls}${isWeekend?" rd-weekend":""}${isToday?" roster-today-cell":""}"><span class="roster-cell-label">${c.label}</span></td>`;
+            const st=cs(c.cls);
+            html+=`<td class="roster-cell${isWeekend?" rd-weekend":""}${isToday?" roster-today-cell":""}" style="${st}"><span class="roster-cell-label">${c.label}</span></td>`;
           });
           html+=`</tr>`;
         });
@@ -164,6 +165,7 @@
       el.innerHTML=html;
     }
 
+    function cs(cls){const s={"rd-day":"background:#dbeafe;color:#1e40af;","rd-night":"background:#ede9fe;color:#5b21b6;","rd-48h":"background:#c7d7fe;color:#1e3a8a;","rd-work":"background:#d1fae5;color:#065f46;","rd-off":"background:#e2e8f0;color:#64748b;","rd-leave-al":"background:#fee2e2;color:#991b1b;","rd-leave-sl":"background:#fef3c7;color:#92400e;","rd-leave-ul":"background:#f3f4f6;color:#374151;","rd-leave-cl":"background:#fce7f3;color:#9d174d;","rd-leave-el":"background:#fff7ed;color:#c2410c;","rd-leave-pl":"background:#ecfdf5;color:#065f46;","rd-leave-hl":"background:#fdf4ff;color:#7e22ce;","rd-leave-st":"background:#eff6ff;color:#1d4ed8;","rd-leave-fa":"background:#fdf4ff;color:#7e22ce;","rd-leave-ns":"background:#f0f9ff;color:#0369a1;","rd-leave-ex":"background:#f0fdf4;color:#15803d;","rd-holiday":"background:#fef9c3;color:#854d0e;","rd-unknown":"background:#f1f5f9;color:#94a3b8;"};return s[cls]||"";}
     window.rosterPrevMonth=()=>{if(currentMonth===0){currentMonth=11;currentYear--;}else currentMonth--;loadMonth();};
     window.rosterNextMonth=()=>{if(currentMonth===11){currentMonth=0;currentYear++;}else currentMonth++;loadMonth();};
     window.changeView=v=>{viewMode=v;renderRoster();};
