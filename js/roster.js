@@ -242,6 +242,11 @@ document.getElementById("cellForm")?.addEventListener("submit", async(e)=>{
     const existing = snap.exists() ? snap.data() : {};
     existing[ds] = { type, updatedBy:MGR.name, updatedAt:new Date().toISOString() };
     await setDoc(ref, existing);
+    // Update local cache immediately so roster re-renders without waiting for snapshot
+    if (!rosterData[key]) rosterData[key] = {};
+    if (!rosterData[key][empId]) rosterData[key][empId] = {};
+    rosterData[key][empId][ds] = { type };
+    renderRoster();
     toast(`✅ Updated ${fmtDate(ds)}`);
     document.getElementById("cellModal").style.display="none";
   } catch(err) { toast("Error: "+err.message,"error"); }
