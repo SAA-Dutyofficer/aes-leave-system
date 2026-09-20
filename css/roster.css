@@ -65,18 +65,31 @@
 .roster-cell-label { font-size:10px; font-weight:700; display:block; }
 
 /* Cell types */
-.rd-day     { background:#dbeafe; color:#1e40af; }
-.rd-night   { background:#ede9fe; color:#5b21b6; }
-.rd-48h     { background:linear-gradient(135deg,#dbeafe,#ede9fe); color:#1e3a8a; }
-.rd-work    { background:#d1fae5; color:#065f46; }
+.rd-day     { background:#dbeafe; color:#1e40af; font-weight:700; }
+.rd-night   { background:#ede9fe; color:#5b21b6; font-weight:700; }
+.rd-48h     { background:linear-gradient(135deg,#dbeafe,#ede9fe); color:#1e3a8a; font-weight:700; }
+.rd-work    { background:#d1fae5; color:#065f46; font-weight:600; }
 .rd-off     { background:#e2e8f0; color:#64748b; font-weight:500; }
-.rd-leave   { background:#fee2e2; color:#991b1b; }
-.rd-holiday { background:#fef3c7; color:#92400e; }
-.rd-swap    { background:#fce7f3; color:#9d174d; }
-.rd-unknown { background:#f1f5f9; color:#94a3b8; }
-.rd-weekend { background:#eef2f7; border-left:1px solid #cbd5e1; border-right:1px solid #cbd5e1; }
-.rd-weekend .roster-cell-label { color:#64748b; font-weight:600; }
-.rd-weekend-hdr { background:rgba(255,255,255,.15) !important; }
+.rd-leave-al { background:#fee2e2; color:#991b1b; font-weight:700; } /* Annual Leave */
+.rd-leave-sl { background:#fef3c7; color:#92400e; font-weight:700; } /* Sick Leave */
+.rd-leave-ul { background:#f3f4f6; color:#374151; font-weight:700; } /* Unpaid Leave */
+.rd-leave-cl { background:#fce7f3; color:#9d174d; font-weight:700; } /* Comp Leave */
+.rd-leave-el { background:#fff7ed; color:#c2410c; font-weight:700; } /* Emergency Leave */
+.rd-leave-pl { background:#ecfdf5; color:#065f46; font-weight:700; } /* Paternity Leave */
+.rd-leave-hl { background:#f0fdf4; color:#166534; font-weight:700; } /* Hajj Leave */
+.rd-leave-st { background:#eff6ff; color:#1d4ed8; font-weight:700; } /* Study Leave */
+.rd-leave-fa { background:#fdf4ff; color:#7e22ce; font-weight:700; } /* Family Leave */
+.rd-leave-ns { background:#f0f9ff; color:#0369a1; font-weight:700; } /* National Service */
+.rd-leave-ex { background:#f0fdf4; color:#15803d; font-weight:700; } /* Exam Leave */
+.rd-leave    { background:#fee2e2; color:#991b1b; font-weight:700; } /* Generic leave fallback */
+.rd-holiday  { background:#fef9c3; color:#854d0e; font-weight:700; }
+.rd-swap     { background:#fce7f3; color:#9d174d; font-weight:700; }
+.rd-unknown  { background:#f1f5f9; color:#94a3b8; }
+
+/* Weekend columns - more visible */
+.rd-weekend { background:#dde3ed !important; }
+.rd-weekend .roster-cell-label { color:#475569 !important; font-weight:600; }
+.rd-weekend-hdr { background:rgba(255,255,255,.2) !important; color:rgba(255,255,255,.7) !important; }
 
 /* ── Swap cards ─────────────────────────────────────────────────── */
 .swap-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; }
@@ -122,3 +135,16 @@
 .roster-me-row td  { background:#fafbff; }
 .roster-me-row .roster-name-cell { font-weight:700; }
 .rd-unknown { background:#f1f5f9; color:#94a3b8; }
+
+/* Leave type legend dots */
+.rd-leave-al { background:#fee2e2; color:#991b1b; font-weight:700; }
+.rd-leave-sl { background:#fef3c7; color:#92400e; font-weight:700; }
+.rd-leave-ul { background:#f3f4f6; color:#374151; font-weight:700; }
+.rd-leave-cl { background:#fce7f3; color:#9d174d; font-weight:700; }
+.rd-leave-el { background:#fff7ed; color:#c2410c; font-weight:700; }
+.rd-leave-pl { background:#ecfdf5; color:#065f46; font-weight:700; }
+.rd-leave-hl { background:#fdf4ff; color:#7e22ce; font-weight:700; }
+.rd-leave-st { background:#eff6ff; color:#1d4ed8; font-weight:700; }
+.rd-leave-fa { background:#fdf4ff; color:#7e22ce; font-weight:700; }
+.rd-leave-ns { background:#f0f9ff; color:#0369a1; font-weight:700; }
+.rd-leave-ex { background:#f0fdf4; color:#15803d; font-weight:700; }
