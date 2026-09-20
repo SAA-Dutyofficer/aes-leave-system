@@ -48,8 +48,10 @@
 .roster-emp-row:hover td { background:#f8fafc; }
 .roster-emp-row td { border-bottom:1px solid var(--gray-100); }
 
-.roster-name-col  { min-width:160px; position:sticky; left:0; background:white; z-index:5; box-shadow:2px 0 4px rgba(0,0,0,.06); }
-.roster-group-col { min-width:80px; position:sticky; left:160px; background:white; z-index:5; }
+.roster-name-col  { min-width:160px; position:sticky; left:0; background:#f8fafc; z-index:6; box-shadow:3px 0 6px rgba(0,0,0,.08); }
+.roster-group-col { min-width:80px; position:sticky; left:160px; background:#f8fafc; z-index:5; box-shadow:2px 0 4px rgba(0,0,0,.05); }
+.roster-emp-row td.roster-name-cell { background:#ffffff; }
+.roster-emp-row:hover td.roster-name-cell { background:#f8fafc; }
 .roster-name-cell { padding:8px 12px; }
 .roster-emp-name  { font-weight:600; font-size:13px; color:var(--gray-900); }
 .roster-group-cell{ padding:6px 8px; }
