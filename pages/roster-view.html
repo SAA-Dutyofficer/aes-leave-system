@@ -94,13 +94,15 @@
       const now=new Date(); currentYear=now.getFullYear(); currentMonth=now.getMonth();
       document.getElementById("logoutBtn").addEventListener("click",()=>signOut(auth).then(()=>window.location.href="../index.html"));
       onSnapshot(query(collection(db,"employees"),orderBy("name")),snap=>{employees=snap.docs.map(d=>({id:d.id,...d.data()})).filter(e=>!e.deleted);renderRoster();});
-      onSnapshot(collection(db,"leaveRequests"),snap=>{approvedLeave=snap.docs.map(d=>({id:d.id,...d.data()})).filter(r=>r.status==="Approved");renderRoster();});
+      onSnapshot(collection(db,"leaveRequests"),snap=>{approvedLeave=snap.docs.map(d=>({id:d.id,...d.data()})).filter(r=>r.status==="Approved");renderRoster();},err=>console.error("leave err",err));
       loadMonth();
     });
 
+    let unsubRoster=null;
     function loadMonth(){
+      if(unsubRoster) unsubRoster();
       const key=rk(currentYear,currentMonth);
-      onSnapshot(collection(db,`rosterData/${key}/entries`),snap=>{
+      unsubRoster=onSnapshot(collection(db,`rosterData/${key}/entries`),snap=>{
         rosterData[key]={};
         snap.docs.forEach(d=>{rosterData[key][d.id]=d.data();});
         renderRoster();
