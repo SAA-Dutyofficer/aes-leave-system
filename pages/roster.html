@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Roster | AES Fire & Rescue</title>
+  <link rel="stylesheet" href="../css/main.css"/>
+  <link rel="stylesheet" href="../css/roster.css"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+</head>
+<body class="roster-body">
+
+  <!-- Sidebar -->
+  <aside class="mgr-sidebar">
+    <div class="sidebar-brand">
+      <img src="../assets/logo.png" alt="" class="sidebar-logo" onerror="this.style.display='none'"/>
+      <div class="sidebar-brand-text">
+        <div class="sb-title">AES Fire &amp; Rescue</div>
+        <div class="sb-sub">Roster Management</div>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <a href="manager.html" class="snav-item"><span class="snav-icon">◁</span> Leave Portal</a>
+      <button class="snav-item active"><span class="snav-icon">▦</span> Roster</button>
+      <button class="snav-item" onclick="document.querySelector('.roster-tab-btn[data-tab=swaps]').click()">
+        <span class="snav-icon">↔</span> Shift Swaps
+      </button>
+    </nav>
+    <div class="sidebar-user">
+      <div class="su-avatar" id="rosterInitials">?</div>
+      <div class="su-info">
+        <div class="su-name" id="rosterNavName">--</div>
+        <div class="su-role" id="rosterNavRole">--</div>
+      </div>
+      <div class="su-actions">
+        <button class="su-btn su-signout" id="logoutBtnRoster" title="Sign Out">⏻</button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <main class="mgr-main roster-main">
+
+    <!-- Header controls -->
+    <div class="roster-header">
+      <div class="roster-header-left">
+        <h1 class="page-title" style="margin-bottom:0">Duty Roster</h1>
+        <div class="roster-month-nav">
+          <button class="cal-nav" onclick="rosterPrevMonth()">&#8249;</button>
+          <span class="roster-month-label" id="rosterMonthLabel">--</span>
+          <button class="cal-nav" onclick="rosterNextMonth()">&#8250;</button>
+        </div>
+      </div>
+      <div class="roster-header-right" id="buildControls">
+        <select id="rosterGroupFilter" class="filter-select">
+          <option value="all">All Groups</option>
+        </select>
+        <button class="btn-ghost" id="groupSetupBtn" onclick="openGroupSetup()">⚙ Group Patterns</button>
+        <button class="btn-primary-sm" onclick="generateNextMonth()">Generate Next Month</button>
+        <button class="btn-ghost" onclick="exportRosterCSV()">⬇ CSV</button>
+        <button class="btn-ghost" onclick="printRoster()">🖨 Print</button>
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="roster-tabs">
+      <button class="roster-tab-btn active" data-tab="roster">📋 Roster</button>
+      <button class="roster-tab-btn" data-tab="swaps">↔ Shift Swaps</button>
+    </div>
+
+    <!-- Roster tab -->
+    <div class="roster-tab-content active" id="rtab-roster">
+      <!-- Legend -->
+      <div class="roster-legend">
+        <span class="rl-item"><span class="rl-dot rd-day"></span>Day (D)</span>
+        <span class="rl-item"><span class="rl-dot rd-night"></span>Night (N)</span>
+        <span class="rl-item"><span class="rl-dot rd-48h"></span>48H Duty</span>
+        <span class="rl-item"><span class="rl-dot rd-work"></span>Working (W)</span>
+        <span class="rl-item"><span class="rl-dot rd-off"></span>Off (O)</span>
+        <span class="rl-item"><span class="rl-dot rd-leave"></span>On Leave</span>
+        <span class="rl-item"><span class="rl-dot rd-weekend"></span>Weekend</span>
+      </div>
+
+      <div id="rosterGrid">
+        <div class="empty-state">Loading roster…</div>
+      </div>
+    </div>
+
+    <!-- Swaps tab -->
+    <div class="roster-tab-content" id="rtab-swaps">
+      <div class="swap-header">
+        <h2 class="page-title" style="margin-bottom:0">Shift Swaps</h2>
+        <button class="btn-primary-sm" onclick="openSwapRequest()">+ Request Swap</button>
+      </div>
+      <div id="swapList"><div class="empty-state">No swap requests.</div></div>
+    </div>
+
+  </main>
+
+  <!-- Cell editor modal -->
+  <div class="modal-overlay" id="cellModal" style="display:none">
+    <div class="modal-box">
+      <div class="modal-head">
+        <div>
+          <div style="font-weight:700" id="cellEmpName">--</div>
+          <div style="font-size:12px;color:#64748b" id="cellDateLabel">--</div>
+        </div>
+        <button class="modal-x" id="cellModalClose">✕</button>
+      </div>
+      <div class="modal-body">
+        <form id="cellForm">
+          <input type="hidden" id="cellEmpId"/>
+          <input type="hidden" id="cellDate"/>
+          <div class="form-field">
+            <label>Shift Type</label>
+            <select id="cellType">
+              <option value="D">D — Day Shift</option>
+              <option value="N">N — Night Shift</option>
+              <option value="48">48H — 48hr Duty</option>
+              <option value="W">W — Working Day</option>
+              <option value="O">O — Off Day</option>
+              <option value="AL">AL — Annual Leave</option>
+              <option value="SL">SL — Sick Leave</option>
+              <option value="HL">HL — Public Holiday</option>
+            </select>
+          </div>
+          <div class="modal-actions">
+            <button type="button" class="btn-ghost" id="cellModalCancel">Cancel</button>
+            <button type="submit" class="btn-primary">Save</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Group Pattern Setup Modal -->
+  <div class="modal-overlay" id="groupSetupModal" style="display:none">
+    <div class="modal-box modal-lg">
+      <div class="modal-head">
+        <span>⚙ Group Pattern Setup</span>
+        <button class="modal-x" id="groupSetupClose">✕</button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size:13px;color:#64748b;margin-bottom:16px">
+          Assign shift patterns per group. All staff in that group will be updated automatically.
+        </p>
+        <div id="groupSetupList"></div>
+        <div class="modal-actions">
+          <button type="button" class="btn-ghost" id="groupSetupCancel">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Swap Request Modal -->
+  <div class="modal-overlay" id="swapModal" style="display:none">
+    <div class="modal-box">
+      <div class="modal-head">
+        <span>↔ Request Shift Swap</span>
+        <button class="modal-x" id="swapModalClose">✕</button>
+      </div>
+      <div class="modal-body">
+        <form id="swapForm">
+          <div class="form-field">
+            <label>Swap With</label>
+            <select id="swapWithEmp"><option value="">Select employee…</option></select>
+          </div>
+          <div class="form-row">
+            <div class="form-field">
+              <label>Your Date</label>
+              <input type="date" id="swapMyDate" required/>
+            </div>
+            <div class="form-field">
+              <label>Their Date</label>
+              <input type="date" id="swapTheirDate" required/>
+            </div>
+          </div>
+          <div class="form-field">
+            <label>Notes <span class="opt">(optional)</span></label>
+            <textarea id="swapNotes" rows="2"></textarea>
+          </div>
+          <div class="form-error" id="swapError"></div>
+          <div class="modal-actions">
+            <button type="button" class="btn-ghost" id="swapModalCancel">Cancel</button>
+            <button type="submit" class="btn-primary">Send Request</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mobile header -->
+  <header class="mgr-mobile-header">
+    <div class="mmh-brand">
+      <img src="../assets/logo.png" alt="" class="mmh-logo" onerror="this.style.display='none'"/>
+      <span>AES Roster</span>
+    </div>
+    <div class="mmh-user">
+      <button class="icon-btn icon-btn-danger" id="logoutBtnRoster2" onclick="document.getElementById('logoutBtnRoster').click()">⏻</button>
+    </div>
+  </header>
+
+  <div id="toastWrap" class="toast-wrap"></div>
+
+  <!-- Print styles inline -->
+  <style>
+    @media print {
+      .mgr-sidebar, .roster-header-right, .roster-tabs, .roster-legend,
+      .mgr-mobile-header, .toast-wrap, .modal-overlay { display:none!important; }
+      .mgr-main { margin-left:0!important; padding:0!important; }
+      .roster-table { font-size:9px; }
+      .roster-cell { min-width:20px!important; padding:2px!important; }
+    }
+  </style>
+
+  <script type="module" src="../js/roster.js"></script>
+</body>
+</html>
