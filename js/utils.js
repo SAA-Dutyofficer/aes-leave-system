@@ -17,17 +17,65 @@ export const ROLES = {
 
 export const APPROVER_ROLES = ["officer","supervisor","fire_admin","section_head","director","superadmin"];
 
+// ── Leave types with entitlements ────────────────────────────────
+// counting: "workdays" = Mon–Thu, "calendar" = all days
+// cycleType: "joining" = resets on joining anniversary, "perEvent" = resets after each use, "oneTime" = never renews
+// entitlement: fixed days (null = custom per employee)
 export const LEAVE_TYPES = [
-  "Annual Leave",
-  "Unpaid Leave",
-  "Sick Leave",
-  "Emergency Leave",
-  "Compassionate Leave",
-  "National Service",
-  "Exam Leave"
+  { key:"Annual Leave",            label:"Annual Leave",            entitlement:30,  counting:"workdays",  cycleType:"joining",  color:"blue",   maxRequests:3 },
+  { key:"Unpaid Leave",            label:"Unpaid Leave",            entitlement:30,  counting:"workdays",  cycleType:"joining",  color:"slate"  },
+  { key:"Sick Leave",              label:"Sick Leave",              entitlement:15,  counting:"workdays",  cycleType:"joining",  color:"amber"  },
+  { key:"Paternity Leave",         label:"Paternity Leave",         entitlement:4,   counting:"workdays",  cycleType:"perEvent", color:"navy"   },
+  { key:"Hajj Leave",              label:"Hajj Leave",              entitlement:30,  counting:"workdays",  cycleType:"oneTime",  color:"gold"   },
+  { key:"Comp Leave",              label:"Comp Leave",              entitlement:null,counting:"calendar",  cycleType:"custom",   color:"purple" },
+  { key:"Study Leave",             label:"Study Leave",             entitlement:null,counting:"calendar",  cycleType:"custom",   color:"indigo" },
+  { key:"Family Accompanied Leave",label:"Family Accompanied Leave",entitlement:null,counting:"calendar",  cycleType:"custom",   color:"teal"   },
+  { key:"Emergency Leave",         label:"Emergency Leave",         entitlement:null,counting:"calendar",  cycleType:"custom",   color:"red"    },
+  { key:"National Service",        label:"National Service",        entitlement:null,counting:"calendar",  cycleType:"custom",   color:"green"  },
+  { key:"Exam Leave",              label:"Exam Leave",              entitlement:null,counting:"calendar",  cycleType:"custom",   color:"green"  },
 ];
 
-// ── Approval chain per group ──────────────────────────────────────
+// Deduplicate
+const _seen = new Set();
+export const LEAVE_TYPES_UNIQUE = LEAVE_TYPES.filter(t => { if (_seen.has(t.key)) return false; _seen.add(t.key); return true; });
+
+export const LEAVE_TYPE_KEYS = LEAVE_TYPES_UNIQUE.map(t=>t.key);
+
+// Which types follow Mon–Thu counting
+export const WORKDAY_TYPES = new Set(LEAVE_TYPES_UNIQUE.filter(t=>t.counting==="workdays").map(t=>t.key));
+
+// ── Leave day counting ────────────────────────────────────────────
+export function countLeaveDays(startStr, endStr, leaveType="Annual Leave") {
+  if (!startStr || !endStr) return 0;
+  const start = new Date(startStr + "T00:00:00");
+  const end   = new Date(endStr   + "T00:00:00");
+  if (end < start) return 0;
+
+  // Calendar types — count all days inclusive
+  if (!WORKDAY_TYPES.has(leaveType)) {
+    return Math.round((end - start) / 86400000) + 1;
+  }
+
+  // Workday types — Mon–Thu only
+  let count = 0;
+  const cur = new Date(start);
+  while (cur <= end) {
+    const wd = cur.getDay();
+    if (wd >= 1 && wd <= 4) count++;
+    cur.setDate(cur.getDate() + 1);
+  }
+  return count;
+}
+
+// ── Validate leave end date doesn't land on or after cycle end ────
+export function validateLeaveDates(startStr, endStr, joinDate) {
+  if (!joinDate) return null;
+  const { end: cycleEnd } = getCurrentCycle(joinDate);
+  if (endStr >= cycleEnd) {
+    return `End date must be before ${fmtDate(cycleEnd)} (your cycle ends on ${fmtDate(cycleEnd)} — last valid day is one day before)`;
+  }
+  return null;
+}
 // Returns ordered array of role keys needed for full approval
 export function getApprovalChain(groupId, submitterRole) {
   const isShift = SHIFT_GROUPS.includes(groupId);
@@ -108,24 +156,7 @@ export function daysUntilExpiry(joinDate) {
   return Math.ceil((endD - today) / 86400000);
 }
 
-// ── Leave counting — Mon–Thu for ALL staff ────────────────────────
-// Per Leigh: shift workers count Mon–Thu same as GD
-export function countLeaveDays(startStr, endStr) {
-  if (!startStr || !endStr) return 0;
-  const start = new Date(startStr + "T00:00:00");
-  const end   = new Date(endStr   + "T00:00:00");
-  if (end < start) return 0;
-  let count = 0;
-  const cur = new Date(start);
-  while (cur <= end) {
-    const wd = cur.getDay(); // 0=Sun,1=Mon,...,4=Thu,5=Fri,6=Sat
-    if (wd >= 1 && wd <= 4) count++; // Mon–Thu only
-    cur.setDate(cur.getDate() + 1);
-  }
-  return count;
-}
-
-// ── Shift pattern helpers (2D2N2Off) ─────────────────────────────
+// ── Approval chain per group ──────────────────────────────────────
 export function getShiftDayType(dateStr, rosterStart) {
   // Returns: 'D' (day), 'N' (night), 'O' (off), or null
   if (!rosterStart) return null;
