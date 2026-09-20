@@ -39,6 +39,7 @@ onAuthStateChanged(auth, async (user) => {
     const data = snap.data();
     if (!APPROVER_ROLES.includes(data.role)) { window.location.href="../index.html"; return; }
     MGR = { uid:user.uid, ...data };
+    MGR.isSuperAdmin = data.role === "superadmin";
 
     // Set UI
     document.getElementById("mgrName").textContent     = MGR.name || user.email;
@@ -128,13 +129,14 @@ function renderDashboard() {
 // ── Approval logic ────────────────────────────────────────────────
 function needsMyApproval(r) {
   if (["Approved","Rejected","Cancelled"].includes(r.status)) return false;
+  // Superadmin can approve anything at any stage
+  if (MGR.isSuperAdmin) return true;
   const chain   = r.approvalChain || [];
   const level   = r.currentLevel || 0;
   const approvals = r.approvals || {};
   if (level >= chain.length) return false;
   const neededRole = chain[level];
   if (MGR.role !== neededRole) return false;
-  // Officers only see their own group
   if (["officer","supervisor"].includes(MGR.role) && MGR.groupId && r.groupId !== MGR.groupId) return false;
   return !approvals[level];
 }
@@ -432,7 +434,7 @@ window.exportLeave = () => {
 // ── Employees ─────────────────────────────────────────────────────
 function renderEmployees() {
   // Officers/Supervisors can only see their group
-  const canManage = ["fire_admin","section_head","director"].includes(MGR.role);
+  const canManage = ["fire_admin","section_head","director","superadmin"].includes(MGR.role);
   const search  = (document.getElementById("empSearch")?.value||"").toLowerCase();
   const grpF    = document.getElementById("empGroupFilter")?.value||"all";
 
@@ -688,7 +690,7 @@ document.getElementById("cpForm").addEventListener("submit",async(e)=>{
 
 // ── UI Setup & Nav ────────────────────────────────────────────────
 function setupUI() {
-  const canManage = ["fire_admin","section_head","director"].includes(MGR.role);
+  const canManage = ["fire_admin","section_head","director","superadmin"].includes(MGR.role);
 
   // Hide add/remove for officers
   if (!canManage) {
