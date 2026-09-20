@@ -178,7 +178,8 @@ function renderRoster() {
       dateHeaders.forEach(({ d, ds, isWeekend }) => {
         const cell = getCellData(emp, ds, d, empRoster, isWeekend);
         const canEdit = ["fire_admin","section_head","director","superadmin"].includes(MGR.role);
-        html += `<td class="roster-cell ${cell.cls} ${isWeekend?"rd-weekend":""}"
+        const wkClass = isWeekend ? "rd-weekend" : "";
+        html += `<td class="roster-cell ${wkClass}" style="${getCellStyle(cell.cls)}"
           ${canEdit?`onclick="openCellEditor('${emp.id}','${ds}','${emp.name}','${cell.type}')"`:""} 
           title="${emp.name} · ${ds}">
           <span class="roster-cell-label">${cell.label}</span>
@@ -235,6 +236,32 @@ function getCellData(emp, ds, dayNum, empRoster, isWeekend) {
   const type = patDef.days[pos] || "O";
 
   return { type, label:DAY_LABELS[type]||type, cls:DAY_CLASSES[type]||"rd-off" };
+}
+
+// ── Cell style lookup (inline styles override any CSS conflicts) ───
+function getCellStyle(cls) {
+  const styles = {
+    "rd-day":      "background:#dbeafe;color:#1e40af;",
+    "rd-night":    "background:#ede9fe;color:#5b21b6;",
+    "rd-48h":      "background:#c7d7fe;color:#1e3a8a;",
+    "rd-work":     "background:#d1fae5;color:#065f46;",
+    "rd-off":      "background:#e2e8f0;color:#64748b;",
+    "rd-leave-al": "background:#fee2e2;color:#991b1b;",
+    "rd-leave-sl": "background:#fef3c7;color:#92400e;",
+    "rd-leave-ul": "background:#f3f4f6;color:#374151;",
+    "rd-leave-cl": "background:#fce7f3;color:#9d174d;",
+    "rd-leave-el": "background:#fff7ed;color:#c2410c;",
+    "rd-leave-pl": "background:#ecfdf5;color:#065f46;",
+    "rd-leave-hl": "background:#fdf4ff;color:#7e22ce;",
+    "rd-leave-st": "background:#eff6ff;color:#1d4ed8;",
+    "rd-leave-fa": "background:#fdf4ff;color:#7e22ce;",
+    "rd-leave-ns": "background:#f0f9ff;color:#0369a1;",
+    "rd-leave-ex": "background:#f0fdf4;color:#15803d;",
+    "rd-holiday":  "background:#fef9c3;color:#854d0e;",
+    "rd-swap":     "background:#fce7f3;color:#9d174d;",
+    "rd-unknown":  "background:#f1f5f9;color:#94a3b8;",
+  };
+  return styles[cls] || "";
 }
 
 // ── Cell Editor ────────────────────────────────────────────────────
