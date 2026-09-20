@@ -5,9 +5,11 @@ import { signInWithEmailAndPassword, onAuthStateChanged, sendPasswordResetEmail 
 import { doc, getDoc }
   from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-// Auto-redirect if already logged in
+// Auto-redirect only from login page, not from within portals
 onAuthStateChanged(auth, async (user) => {
   if (!user) return;
+  // Only redirect if we're on the login page itself
+  if (!window.location.pathname.endsWith("index.html") && window.location.pathname !== "/" && !window.location.pathname.endsWith("/")) return;
   try {
     const role = await getRole(user.uid);
     redirect(role);
