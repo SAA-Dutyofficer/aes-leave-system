@@ -11,13 +11,13 @@ import { sendEmail } from "./email.js";
 
 // ── Constants ──────────────────────────────────────────────────────
 const SHIFT_PATTERNS = {
-  "2D2N2O":  { label:"2D2N2O (Current)",    cycle:6,  days:["D","N","O","O","O","O"] },
-  "48H4O":   { label:"48H4O (48hrs + 4 off)",cycle:6, days:["48","48","O","O","O","O"], merged:true },
-  "3W3O":    { label:"3W3O (3 on 3 off)",   cycle:6,  days:["W","W","W","O","O","O"] },
-  "4W3O":    { label:"4W3O (4 on 3 off)",   cycle:7,  days:["W","W","W","W","O","O","O"] },
-  "4W4O":    { label:"4W4O (4 on 4 off)",   cycle:8,  days:["W","W","W","W","O","O","O","O"] },
-  "5W2O":    { label:"5W2O (Mon–Fri)",      cycle:7,  days:["W","W","W","W","W","O","O"] },
-  "GD":      { label:"GD (Mon–Thu)",         cycle:7,  days:["W","W","W","W","O","O","O"], gdMode:true },
+  "2D2N2O":  { label:"2D2N2O (Current)",      cycle:6,  days:["D","D","N","N","O","O"] },
+  "48H4O":   { label:"48H4O (48hrs + 4 off)", cycle:6,  days:["48","48","O","O","O","O"], merged:true },
+  "3W3O":    { label:"3W3O (3 on 3 off)",     cycle:6,  days:["W","W","W","O","O","O"] },
+  "4W3O":    { label:"4W3O (4 on 3 off)",     cycle:7,  days:["W","W","W","W","O","O","O"] },
+  "4W4O":    { label:"4W4O (4 on 4 off)",     cycle:8,  days:["W","W","W","W","O","O","O","O"] },
+  "5W2O":    { label:"5W2O (Mon–Fri)",         cycle:7,  days:["W","W","W","W","W","O","O"] },
+  "GD":      { label:"GD (Mon–Thu)",           cycle:7,  days:["W","W","W","W","O","O","O"], gdMode:true },
 };
 
 const DAY_LABELS = { D:"D", N:"N", "48":"48H", W:"W", O:"O" };
