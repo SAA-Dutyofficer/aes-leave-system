@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
 </head>
-<body class="staff-body">
+<body class="staff-body" style="background:#f0f2f5;">
 
   <header class="staff-topnav">
     <div class="topnav-brand">
@@ -93,19 +93,25 @@
       document.getElementById("navGroup").textContent=EMP.groupId||"";
       const now=new Date(); currentYear=now.getFullYear(); currentMonth=now.getMonth();
       document.getElementById("logoutBtn").addEventListener("click",()=>signOut(auth).then(()=>window.location.href="../index.html"));
-      onSnapshot(query(collection(db,"employees"),orderBy("name")),snap=>{employees=snap.docs.map(d=>({id:d.id,...d.data()})).filter(e=>!e.deleted);renderRoster();});
+      onSnapshot(query(collection(db,"employees"),orderBy("name")),snap=>{employees=snap.docs.map(d=>({id:d.id,...d.data()})).filter(e=>!e.deleted);loadMonth();renderRoster();});
       onSnapshot(collection(db,"leaveRequests"),snap=>{approvedLeave=snap.docs.map(d=>({id:d.id,...d.data()})).filter(r=>r.status==="Approved");renderRoster();},err=>console.error("leave err",err));
       loadMonth();
     });
 
-    let unsubRoster=null;
+    const unsubMap={};
     function loadMonth(){
-      if(unsubRoster) unsubRoster();
+      Object.values(unsubMap).forEach(u=>{ try{u();}catch(e){} });
+      Object.keys(unsubMap).forEach(k=>delete unsubMap[k]);
       const key=rk(currentYear,currentMonth);
-      unsubRoster=onSnapshot(collection(db,`rosterData/${key}/entries`),snap=>{
-        rosterData[key]={};
-        snap.docs.forEach(d=>{rosterData[key][d.id]=d.data();});
-        renderRoster();
+      if(!rosterData[key]) rosterData[key]={};
+      // Per-employee listeners — more reliable than collection listener
+      employees.forEach(emp=>{
+        const ref=doc(db,`rosterData/${key}/entries`,emp.id);
+        unsubMap[emp.id]=onSnapshot(ref,snap=>{
+          if(!rosterData[key]) rosterData[key]={};
+          rosterData[key][emp.id]=snap.exists()?snap.data():{};
+          renderRoster();
+        },err=>console.error("roster listener error:",err));
       });
     }
 
@@ -157,8 +163,8 @@
           html+=`<tr class="roster-emp-row${isMe?" roster-me-row":""}"><td class="roster-name-cell"><div class="roster-emp-name">${emp.name}${isMe?" ★":""}</div></td>`;
           hdrs.forEach(({ds,isWeekend,isToday})=>{
             const c=cell(emp,ds,rm);
-            const st=cs(c.type);
-            html+=`<td class="roster-cell${isToday?" roster-today-cell":""}" ${isWeekend?"data-wk=\"1\"":""} style="${st}${isToday?"outline:2px solid #b91c1c;outline-offset:-2px;":""}"><span class="roster-cell-label">${c.label}</span></td>`;
+            const st=cs(c.type,isWeekend);
+            html+=`<td class="roster-cell${isToday?" roster-today-cell":""}" style="${st}${isToday?"outline:2px solid #b91c1c;outline-offset:-2px;":""}"><span class="roster-cell-label">${c.label}</span></td>`;
           });
           html+=`</tr>`;
         });
@@ -167,9 +173,9 @@
       el.innerHTML=html;
     }
 
-    function cs(type){const S={D:"background:#dbeafe;color:#1e40af;font-weight:700;",N:"background:#ede9fe;color:#5b21b6;font-weight:700;","48":"background:#c7d7fe;color:#1e3a8a;font-weight:700;",W:"background:#d1fae5;color:#065f46;font-weight:600;",O:"background:#e2e8f0;color:#64748b;font-weight:500;",AL:"background:#fee2e2;color:#991b1b;font-weight:700;",SL:"background:#fef3c7;color:#92400e;font-weight:700;",UL:"background:#f3f4f6;color:#374151;font-weight:700;",CL:"background:#fce7f3;color:#9d174d;font-weight:700;",EL:"background:#fff7ed;color:#c2410c;font-weight:700;",PL:"background:#ecfdf5;color:#065f46;font-weight:700;",HL2:"background:#fdf4ff;color:#7e22ce;font-weight:700;",ST:"background:#eff6ff;color:#1d4ed8;font-weight:700;",FA:"background:#fdf4ff;color:#7e22ce;font-weight:700;",NS:"background:#f0f9ff;color:#0369a1;font-weight:700;",EX:"background:#f0fdf4;color:#15803d;font-weight:700;",HL:"background:#fef9c3;color:#854d0e;font-weight:700;","?":"background:#f1f5f9;color:#94a3b8;"};return S[type]||"background:#f1f5f9;color:#94a3b8;";}
-    window.rosterPrevMonth=()=>{if(currentMonth===0){currentMonth=11;currentYear--;}else currentMonth--;loadMonth();};
-    window.rosterNextMonth=()=>{if(currentMonth===11){currentMonth=0;currentYear++;}else currentMonth++;loadMonth();};
+    function cs(type,isWk){const S={D:"background:#dbeafe;color:#1e40af;font-weight:700;",N:"background:#ede9fe;color:#5b21b6;font-weight:700;","48":"background:#c7d7fe;color:#1e3a8a;font-weight:700;",W:"background:#d1fae5;color:#065f46;font-weight:600;",O:"background:#e2e8f0;color:#64748b;font-weight:500;",AL:"background:#fee2e2;color:#991b1b;font-weight:700;",SL:"background:#fef3c7;color:#92400e;font-weight:700;",UL:"background:#f3f4f6;color:#374151;font-weight:700;",CL:"background:#fce7f3;color:#9d174d;font-weight:700;",EL:"background:#fff7ed;color:#c2410c;font-weight:700;",PL:"background:#ecfdf5;color:#065f46;font-weight:700;",HL2:"background:#fdf4ff;color:#7e22ce;font-weight:700;",ST:"background:#eff6ff;color:#1d4ed8;font-weight:700;",FA:"background:#fdf4ff;color:#7e22ce;font-weight:700;",NS:"background:#f0f9ff;color:#0369a1;font-weight:700;",EX:"background:#f0fdf4;color:#15803d;font-weight:700;",HL:"background:#fef9c3;color:#854d0e;font-weight:700;","?":"background:#f1f5f9;color:#94a3b8;"};if(isWk&&(type==="O"||type==="?"||!S[type]))return"background:#c8d3e6 !important;color:#475569;font-weight:500;";if(isWk&&S[type])return S[type];return S[type]||"background:#f1f5f9;color:#94a3b8;";}
+    window.rosterPrevMonth=()=>{if(currentMonth===0){currentMonth=11;currentYear--;}else currentMonth--;rosterData={};loadMonth();};
+    window.rosterNextMonth=()=>{if(currentMonth===11){currentMonth=0;currentYear++;}else currentMonth++;rosterData={};loadMonth();};
     window.changeView=v=>{viewMode=v;renderRoster();};
   </script>
 </body>
