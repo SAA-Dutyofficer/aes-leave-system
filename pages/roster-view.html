@@ -8,8 +8,14 @@
   <link rel="stylesheet" href="../css/roster.css"/>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <style>
+    /* Weekend columns — stylesheet !important overrides inline styles */
+    .roster-table th.wk-col { background:rgba(185,28,28,.25) !important; color:rgba(255,255,255,.9) !important; }
+    .roster-table td.wk-col { background:#dde3ed !important; color:#64748b !important; }
+    .roster-table td.wk-col .roster-cell-label { color:#94a3b8 !important; }
+  </style>
 </head>
-<body class="staff-body" style="background:#f0f2f5;">
+<body class="staff-body">
 
   <header class="staff-topnav">
     <div class="topnav-brand">
@@ -46,6 +52,7 @@
       <span class="rl-item"><span class="rl-dot rd-work"></span>Working</span>
       <span class="rl-item"><span class="rl-dot rd-off"></span>Off</span>
       <span class="rl-item"><span class="rl-dot rd-leave"></span>On Leave</span>
+      <span class="rl-item"><span class="rl-dot" style="background:#dde3ed;border:1px solid #94a3b8;"></span>Weekend</span>
     </div>
     <div id="rosterGrid"><div class="empty-state">Loading roster…</div></div>
   </main>
@@ -67,6 +74,7 @@
 
     let ME=null, EMP=null, employees=[], approvedLeave=[], rosterData={};
     let currentYear, currentMonth, viewMode="all";
+    let unsubRoster=null;
 
     const SHIFT_PATTERNS = {
       "2D2N2O":{cycle:6,days:["D","D","N","N","O","O"]},
@@ -77,59 +85,118 @@
       "5W2O":  {cycle:7,days:["W","W","W","W","W","O","O"]},
       "GD":    {cycle:7,days:["W","W","W","W","O","O","O"]},
     };
-    const DL={D:"D",N:"N","48":"48H",W:"W",O:"O"};
-    const DC={D:"rd-day",N:"rd-night","48":"rd-48h",W:"rd-work",O:"rd-off",AL:"rd-leave-al",SL:"rd-leave-sl",UL:"rd-leave-ul",CL:"rd-leave-cl",EL:"rd-leave-el",PL:"rd-leave-pl",HL2:"rd-leave-hl",ST:"rd-leave-st",FA:"rd-leave-fa",NS:"rd-leave-ns",EX:"rd-leave-ex",HL:"rd-holiday",SWAP:"rd-swap"};
 
-    function rk(y,m){return `${y}-${String(m+1).padStart(2,"0")}`;}
+    // Inline style map keyed by type code
+    const STYLES = {
+      D:   "background:#dbeafe;color:#1e40af;font-weight:700;",
+      N:   "background:#ede9fe;color:#5b21b6;font-weight:700;",
+      "48":"background:#c7d7fe;color:#1e3a8a;font-weight:700;",
+      W:   "background:#d1fae5;color:#065f46;font-weight:600;",
+      O:   "background:#e2e8f0;color:#64748b;font-weight:500;",
+      AL:  "background:#fee2e2;color:#991b1b;font-weight:700;",
+      SL:  "background:#fef3c7;color:#92400e;font-weight:700;",
+      UL:  "background:#f3f4f6;color:#374151;font-weight:700;",
+      CL:  "background:#fce7f3;color:#9d174d;font-weight:700;",
+      EL:  "background:#fff7ed;color:#c2410c;font-weight:700;",
+      PL:  "background:#ecfdf5;color:#065f46;font-weight:700;",
+      HL2: "background:#fdf4ff;color:#7e22ce;font-weight:700;",
+      ST:  "background:#eff6ff;color:#1d4ed8;font-weight:700;",
+      FA:  "background:#fdf4ff;color:#7e22ce;font-weight:700;",
+      NS:  "background:#f0f9ff;color:#0369a1;font-weight:700;",
+      EX:  "background:#f0fdf4;color:#15803d;font-weight:700;",
+      HL:  "background:#fef9c3;color:#854d0e;font-weight:700;",
+      "?": "background:#f1f5f9;color:#94a3b8;",
+    };
 
+    const LEAVE_MAP = {
+      "Annual Leave":"AL","Sick Leave":"SL","Unpaid Leave":"UL",
+      "Comp Leave":"CL","Emergency Leave":"EL","Paternity Leave":"PL",
+      "Hajj Leave":"HL2","Study Leave":"ST","Family Accompanied Leave":"FA",
+      "National Service":"NS","Exam Leave":"EX"
+    };
+
+    const DAY_LABEL = {D:"D",N:"N","48":"48H",W:"W",O:"O",AL:"AL",SL:"SL",UL:"UL",CL:"CL",EL:"EL",PL:"PL",HL2:"HL",ST:"ST",FA:"FA",NS:"NS",EX:"EX",HL:"HL","?":"?"};
+
+    function rk(y,m){ return `${y}-${String(m+1).padStart(2,"0")}`; }
+
+    // ── Auth ────────────────────────────────────────────────────────
     onAuthStateChanged(auth, async(user)=>{
-      if (!user){window.location.href="../index.html";return;}
+      if (!user){ window.location.href="../index.html"; return; }
       ME=user;
       const s=await getDoc(doc(db,"employees",ME.uid));
-      if (!s.exists()){window.location.href="../index.html";return;}
+      if (!s.exists()){ window.location.href="../index.html"; return; }
       EMP={id:s.id,...s.data()};
       document.getElementById("navInitials").textContent=(EMP.name||"?")[0].toUpperCase();
       document.getElementById("navName").textContent=EMP.name||ME.email;
       document.getElementById("navGroup").textContent=EMP.groupId||"";
-      const now=new Date(); currentYear=now.getFullYear(); currentMonth=now.getMonth();
+      const now=new Date();
+      currentYear=now.getFullYear();
+      currentMonth=now.getMonth();
       document.getElementById("logoutBtn").addEventListener("click",()=>signOut(auth).then(()=>window.location.href="../index.html"));
-      onSnapshot(query(collection(db,"employees"),orderBy("name")),snap=>{employees=snap.docs.map(d=>({id:d.id,...d.data()})).filter(e=>!e.deleted);loadMonth();renderRoster();});
-      onSnapshot(collection(db,"leaveRequests"),snap=>{approvedLeave=snap.docs.map(d=>({id:d.id,...d.data()})).filter(r=>r.status==="Approved");renderRoster();},err=>console.error("leave err",err));
-      loadMonth();
+
+      // Load employees first, then start roster listener
+      onSnapshot(query(collection(db,"employees"),orderBy("name")), snap=>{
+        employees=snap.docs.map(d=>({id:d.id,...d.data()})).filter(e=>!e.deleted);
+        // Always reload month listeners when employees change (new staff added etc)
+        loadMonth();
+      });
+
+      // Live approved leave
+      onSnapshot(collection(db,"leaveRequests"), snap=>{
+        approvedLeave=snap.docs.map(d=>({id:d.id,...d.data()})).filter(r=>r.status==="Approved");
+        renderRoster();
+      });
     });
 
-    const unsubMap={};
+    // ── Roster data — per-employee listeners for reliability ────────
+    const empUnsubs={};
     function loadMonth(){
-      Object.values(unsubMap).forEach(u=>{ try{u();}catch(e){} });
-      Object.keys(unsubMap).forEach(k=>delete unsubMap[k]);
+      // Unsubscribe old roster listeners
+      Object.values(empUnsubs).forEach(u=>{ try{u();}catch(e){} });
+      Object.keys(empUnsubs).forEach(k=>delete empUnsubs[k]);
+      if(unsubRoster){ try{unsubRoster();}catch(e){} unsubRoster=null; }
+
       const key=rk(currentYear,currentMonth);
-      if(!rosterData[key]) rosterData[key]={};
-      // Per-employee listeners — more reliable than collection listener
+      rosterData[key]={};
+
+      if(employees.length===0){ renderRoster(); return; }
+
+      // Subscribe to each employee's roster document individually
       employees.forEach(emp=>{
         const ref=doc(db,`rosterData/${key}/entries`,emp.id);
-        unsubMap[emp.id]=onSnapshot(ref,snap=>{
+        empUnsubs[emp.id]=onSnapshot(ref, snap=>{
           if(!rosterData[key]) rosterData[key]={};
           rosterData[key][emp.id]=snap.exists()?snap.data():{};
           renderRoster();
-        },err=>console.error("roster listener error:",err));
+        }, err=>console.error("Roster listener error for",emp.id,err));
       });
     }
 
-    function cell(emp,ds,rm){
+    // ── Cell data ───────────────────────────────────────────────────
+    function getCell(emp, ds, rm){
+      // 1. Approved leave
       const ol=approvedLeave.find(r=>r.employeeId===emp.id&&r.startDate<=ds&&r.endDate>=ds);
-      if(ol){const lm={"Annual Leave":"AL","Sick Leave":"SL","Unpaid Leave":"UL","Comp Leave":"CL","Emergency Leave":"EL","Paternity Leave":"PL","Hajj Leave":"HL2","Study Leave":"ST","Family Accompanied Leave":"FA","National Service":"NS","Exam Leave":"EX"};const c=lm[ol.leaveType]||"AL";return{type:c,label:DL[c]||c,cls:DC[c]||"rd-leave-al"};}
-      if(rm[ds]){const t=rm[ds].type;return{type:t,label:DL[t]||t,cls:DC[t]||"rd-off"};}
+      if(ol){ const t=LEAVE_MAP[ol.leaveType]||"AL"; return{type:t,label:DAY_LABEL[t]||t}; }
+
+      // 2. Manual override
+      if(rm[ds]){ const t=rm[ds].type; return{type:t,label:DAY_LABEL[t]||t}; }
+
+      // 3. Auto pattern
       const p=emp.pattern||"GD";
-      if(p==="GD"||emp.dept==="GD"){const wd=new Date(ds+"T00:00:00").getDay();return wd>=1&&wd<=4?{type:"W",label:"W",cls:"rd-work"}:{type:"O",label:"O",cls:"rd-off"};}
-      if(!emp.rosterStart) return{label:"?",cls:"rd-unknown"};
+      if(p==="GD"||emp.dept==="GD"){
+        const wd=new Date(ds+"T00:00:00").getDay();
+        return wd>=1&&wd<=4?{type:"W",label:"W"}:{type:"O",label:"O"};
+      }
+      if(!emp.rosterStart) return{type:"?",label:"?"};
       const pat=SHIFT_PATTERNS[p];
-      if(!pat) return{type:"?",label:"?",cls:"rd-unknown"};
+      if(!pat) return{type:"?",label:"?"};
       const diff=Math.round((new Date(ds+"T00:00:00")-new Date(emp.rosterStart+"T00:00:00"))/86400000);
       const pos=((diff%pat.cycle)+pat.cycle)%pat.cycle;
       const t=pat.days[pos]||"O";
-      return{type:t,label:DL[t]||t,cls:DC[t]||"rd-off"};
+      return{type:t,label:DAY_LABEL[t]||t};
     }
 
+    // ── Render ──────────────────────────────────────────────────────
     function renderRoster(){
       const el=document.getElementById("rosterGrid");
       if(!el||!EMP) return;
@@ -138,45 +205,60 @@
       const last=new Date(currentYear,currentMonth+1,0);
       const days=last.getDate();
       const today=todayStr();
-      document.getElementById("rosterMonthLabel").textContent=first.toLocaleDateString("en-GB",{month:"long",year:"numeric"});
+
+      document.getElementById("rosterMonthLabel").textContent=
+        first.toLocaleDateString("en-GB",{month:"long",year:"numeric"});
+
       let emps=[...employees];
       if(viewMode==="group") emps=emps.filter(e=>e.groupId===EMP.groupId);
       if(viewMode==="me")    emps=emps.filter(e=>e.id===ME.uid);
-      if(!emps.length){el.innerHTML=`<div class="empty-state">No staff found.</div>`;return;}
+      if(!emps.length){ el.innerHTML=`<div class="empty-state">No staff found.</div>`; return; }
+
+      // Date headers
       const hdrs=[];
       for(let d=1;d<=days;d++){
         const ds=`${currentYear}-${String(currentMonth+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
         const wd=new Date(ds+"T00:00:00").getDay();
-        hdrs.push({d,ds,wd,isWeekend:wd===0||wd===5||wd===6,isToday:ds===today,wdL:["Su","Mo","Tu","We","Th","Fr","Sa"][wd]});
+        const isWeekend=wd===0||wd===5||wd===6;
+        hdrs.push({d,ds,wd,isWeekend,isToday:ds===today,wdL:["Su","Mo","Tu","We","Th","Fr","Sa"][wd]});
       }
+
       const groups=[...new Set(emps.map(e=>e.groupId||"Unassigned"))];
       let html=`<div class="roster-table-wrap"><table class="roster-table"><thead><tr>
         <th class="roster-name-col">Employee</th>
-        ${hdrs.map(h=>`<th class="roster-day-hdr${h.isWeekend?" rd-weekend-hdr":""}${h.isToday?" roster-today-hdr":""}">${h.d}<br/><span class="roster-wd">${h.wdL}</span></th>`).join("")}
+        ${hdrs.map(h=>`<th class="roster-day-hdr${h.isWeekend?" wk-col":""}${h.isToday?" roster-today-hdr":""}">${h.d}<br/><span class="roster-wd">${h.wdL}</span></th>`).join("")}
       </tr></thead><tbody>`;
+
       groups.forEach(grp=>{
         const ge=emps.filter(e=>(e.groupId||"Unassigned")===grp);
         html+=`<tr class="roster-group-row"><td colspan="${days+1}" class="roster-group-hdr">${grp}</td></tr>`;
         ge.forEach(emp=>{
           const rm=rosterData[key]?.[emp.id]||{};
           const isMe=emp.id===ME.uid;
-          html+=`<tr class="roster-emp-row${isMe?" roster-me-row":""}"><td class="roster-name-cell"><div class="roster-emp-name">${emp.name}${isMe?" ★":""}</div></td>`;
+          html+=`<tr class="roster-emp-row${isMe?" roster-me-row":""}">
+            <td class="roster-name-cell"><div class="roster-emp-name">${emp.name}${isMe?" ★":""}</div></td>`;
           hdrs.forEach(({ds,isWeekend,isToday})=>{
-            const c=cell(emp,ds,rm);
-            const st=cs(c.type,isWeekend);
-            html+=`<td class="roster-cell${isToday?" roster-today-cell":""}" style="${st}${isToday?"outline:2px solid #b91c1c;outline-offset:-2px;":""}"><span class="roster-cell-label">${c.label}</span></td>`;
+            const c=getCell(emp,ds,rm);
+            // Weekend O/? cells use CSS class (wk-col) which has !important
+            // Other cells use inline styles
+            const useWkClass=isWeekend&&(c.type==="O"||c.type==="?");
+            const style=useWkClass?"":( STYLES[c.type]||"background:#f1f5f9;color:#94a3b8;" );
+            const todayStyle=isToday?"outline:2px solid #b91c1c;outline-offset:-2px;":"";
+            html+=`<td class="roster-cell${isWeekend?" wk-col":""}${isToday?" roster-today-cell":""}" style="${style}${todayStyle}">
+              <span class="roster-cell-label">${c.label}</span>
+            </td>`;
           });
           html+=`</tr>`;
         });
       });
+
       html+=`</tbody></table></div>`;
       el.innerHTML=html;
     }
 
-    function cs(type,isWk){const S={D:"background:#dbeafe;color:#1e40af;font-weight:700;",N:"background:#ede9fe;color:#5b21b6;font-weight:700;","48":"background:#c7d7fe;color:#1e3a8a;font-weight:700;",W:"background:#d1fae5;color:#065f46;font-weight:600;",O:"background:#e2e8f0;color:#64748b;font-weight:500;",AL:"background:#fee2e2;color:#991b1b;font-weight:700;",SL:"background:#fef3c7;color:#92400e;font-weight:700;",UL:"background:#f3f4f6;color:#374151;font-weight:700;",CL:"background:#fce7f3;color:#9d174d;font-weight:700;",EL:"background:#fff7ed;color:#c2410c;font-weight:700;",PL:"background:#ecfdf5;color:#065f46;font-weight:700;",HL2:"background:#fdf4ff;color:#7e22ce;font-weight:700;",ST:"background:#eff6ff;color:#1d4ed8;font-weight:700;",FA:"background:#fdf4ff;color:#7e22ce;font-weight:700;",NS:"background:#f0f9ff;color:#0369a1;font-weight:700;",EX:"background:#f0fdf4;color:#15803d;font-weight:700;",HL:"background:#fef9c3;color:#854d0e;font-weight:700;","?":"background:#f1f5f9;color:#94a3b8;"};if(isWk&&(type==="O"||type==="?"||!S[type]))return"background:#c8d3e6 !important;color:#475569;font-weight:500;";if(isWk&&S[type])return S[type];return S[type]||"background:#f1f5f9;color:#94a3b8;";}
-    window.rosterPrevMonth=()=>{if(currentMonth===0){currentMonth=11;currentYear--;}else currentMonth--;rosterData={};loadMonth();};
-    window.rosterNextMonth=()=>{if(currentMonth===11){currentMonth=0;currentYear++;}else currentMonth++;rosterData={};loadMonth();};
-    window.changeView=v=>{viewMode=v;renderRoster();};
+    window.rosterPrevMonth=()=>{ if(currentMonth===0){currentMonth=11;currentYear--;}else currentMonth--; rosterData={}; loadMonth(); };
+    window.rosterNextMonth=()=>{ if(currentMonth===11){currentMonth=0;currentYear++;}else currentMonth++; rosterData={}; loadMonth(); };
+    window.changeView=v=>{ viewMode=v; renderRoster(); };
   </script>
 </body>
 </html>
