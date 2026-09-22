@@ -193,11 +193,13 @@ function renderRoster() {
       dateHeaders.forEach(({ d, ds, isWeekend }) => {
         const cell = getCellData(emp, ds, d, empRoster, isWeekend);
         const canEdit = ["fire_admin","section_head","director","superadmin"].includes(MGR.role);
-        const isWkOff = isWeekend&&(cell.type==="O"||cell.type==="?"||!getCellStyleDirect(cell.type));
-        const baseStyle = isWkOff ? "" : (getCellStyleDirect(cell.type)||"background:#f1f5f9;color:#94a3b8;");
-        // Manual overrides get a bottom border to indicate they've been changed
+        // Color is ONLY based on shift type — never on day of week
+        const isOff = cell.type==="O" || cell.type==="?";
+        const style = isOff
+          ? "background:#e2e8f0;color:#64748b;font-weight:500;"
+          : (getCellStyleDirect(cell.type)||"background:#f1f5f9;color:#94a3b8;");
         const manualStyle = cell.manual ? "border-bottom:2px solid #f59e0b;" : "";
-        html += `<td class="roster-cell${isWeekend?" wk-col":""}" style="${baseStyle}${manualStyle}"
+        html += `<td class="roster-cell" style="${style}${manualStyle}"
           ${canEdit?`onclick="openCellEditor('${emp.id}','${ds}','${emp.name}','${cell.type}')"`:""} 
           title="${emp.name} · ${ds}${cell.manual?' (manually set)':''}">
           <span class="roster-cell-label">${cell.label}${cell.manual?'<span style="font-size:7px;vertical-align:super;">✎</span>':''}</span>
@@ -393,7 +395,7 @@ window.applyGroupPattern = async (groupId) => {
   });
   await batch.commit();
   toast(`✅ Pattern applied to ${grpEmps.length} staff in ${groupId}`);
-  renderRoster();
+  loadRosterMonth();
 };
 
 ["groupSetupClose","groupSetupCancel"].forEach(id=>
