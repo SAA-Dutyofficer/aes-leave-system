@@ -82,26 +82,41 @@ function initials(name) {
 }
 
 // ── Data ───────────────────────────────────────────────────────────
+const rosterUnsubs = {};
+
+function loadRosterMonth() {
+  // Unsubscribe old roster listeners
+  Object.values(rosterUnsubs).forEach(u=>{ try{u();}catch(e){} });
+  Object.keys(rosterUnsubs).forEach(k=>delete rosterUnsubs[k]);
+
+  const key = rosterKey(currentYear, currentMonth);
+  rosterData[key] = {};
+
+  if (!employees.length) { renderRoster(); return; }
+
+  // Per-employee listeners — reliable, fires on every change
+  employees.forEach(emp=>{
+    const ref = doc(db,`rosterData/${key}/entries`,emp.id);
+    rosterUnsubs[emp.id] = onSnapshot(ref, snap=>{
+      if (!rosterData[key]) rosterData[key]={};
+      rosterData[key][emp.id] = snap.exists() ? snap.data() : {};
+      renderRoster();
+    }, err=>console.error("Roster listener err:",emp.id,err));
+  });
+}
+
 function loadData() {
-  // Employees
+  // Employees — always reload roster listeners when employees change
   onSnapshot(query(collection(db,"employees"), orderBy("name")), snap => {
     employees = snap.docs.map(d=>({id:d.id,...d.data()})).filter(e=>!e.deleted);
-    renderRoster();
     populateGroupFilter();
     renderSwapRequests();
+    loadRosterMonth();
   });
 
   // Approved leave
   onSnapshot(collection(db,"leaveRequests"), snap => {
     approvedLeave = snap.docs.map(d=>({id:d.id,...d.data()})).filter(r=>r.status==="Approved");
-    renderRoster();
-  });
-
-  // Roster data (stored as rosterData/{year-month}/{empId})
-  const key = rosterKey(currentYear, currentMonth);
-  onSnapshot(collection(db,`rosterData/${key}/entries`), snap => {
-    rosterData[key] = {};
-    snap.docs.forEach(d => { rosterData[key][d.id] = d.data(); });
     renderRoster();
   });
 
@@ -179,11 +194,13 @@ function renderRoster() {
         const cell = getCellData(emp, ds, d, empRoster, isWeekend);
         const canEdit = ["fire_admin","section_head","director","superadmin"].includes(MGR.role);
         const isWkOff = isWeekend&&(cell.type==="O"||cell.type==="?"||!getCellStyleDirect(cell.type));
-        const style = isWkOff ? "" : (getCellStyleDirect(cell.type)||"background:#f1f5f9;color:#94a3b8;");
-        html += `<td class="roster-cell${isWeekend?" wk-col":""}" style="${style}"
+        const baseStyle = isWkOff ? "" : (getCellStyleDirect(cell.type)||"background:#f1f5f9;color:#94a3b8;");
+        // Manual overrides get a bottom border to indicate they've been changed
+        const manualStyle = cell.manual ? "border-bottom:2px solid #f59e0b;" : "";
+        html += `<td class="roster-cell${isWeekend?" wk-col":""}" style="${baseStyle}${manualStyle}"
           ${canEdit?`onclick="openCellEditor('${emp.id}','${ds}','${emp.name}','${cell.type}')"`:""} 
-          title="${emp.name} · ${ds}">
-          <span class="roster-cell-label">${cell.label}</span>
+          title="${emp.name} · ${ds}${cell.manual?' (manually set)':''}">
+          <span class="roster-cell-label">${cell.label}${cell.manual?'<span style="font-size:7px;vertical-align:super;">✎</span>':''}</span>
         </td>`;
       });
 
@@ -212,7 +229,7 @@ function getCellData(emp, ds, dayNum, empRoster, isWeekend) {
   // 2. Check manual roster entry
   if (empRoster[ds]) {
     const t = empRoster[ds].type;
-    return { type:t, label:DAY_LABELS[t]||t, cls:DAY_CLASSES[t]||"rd-work" };
+    return { type:t, label:DAY_LABELS[t]||t, cls:DAY_CLASSES[t]||"rd-work", manual:true };
   }
 
   // 3. Auto-calculate from pattern
@@ -436,16 +453,8 @@ window.rosterNextMonth = () => {
 };
 
 function reloadRosterMonth() {
-  const key = rosterKey(currentYear, currentMonth);
-  if (!rosterData[key]) {
-    onSnapshot(collection(db,`rosterData/${key}/entries`), snap=>{
-      rosterData[key]={};
-      snap.docs.forEach(d=>{ rosterData[key][d.id]=d.data(); });
-      renderRoster();
-    });
-  } else {
-    renderRoster();
-  }
+  rosterData = {};
+  loadRosterMonth();
 }
 
 // ── Print & Export ─────────────────────────────────────────────────
