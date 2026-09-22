@@ -225,11 +225,12 @@
             const c=getCell(emp,ds,rm);
             // Weekend O/? cells: wk-col class handles background via CSS !important
             // Other cells: inline style from STYLES map
-            const isWkOff=isWeekend&&(c.type==="O"||c.type==="?"||!STYLES[c.type]);
-            const style=isWkOff?"":( STYLES[c.type]||"background:#f1f5f9;color:#94a3b8;" );
+            // Color based ONLY on shift type — not day of week
+            const isOff=c.type==="O"||c.type==="?";
+            const style=isOff?"background:#e2e8f0;color:#64748b;font-weight:500;":(STYLES[c.type]||"background:#f1f5f9;color:#94a3b8;");
             const manualStyle=c.manual?"border-bottom:2px solid #f59e0b;":"";
             const todayBorder=isToday?"outline:2px solid #b91c1c;outline-offset:-2px;":"";
-            html+=`<td class="roster-cell${isWeekend?" wk-col":""}${isToday?" roster-today-cell":""}" style="${style}${manualStyle}${todayBorder}">
+            html+=`<td class="roster-cell${isToday?" roster-today-cell":""}" style="${style}${manualStyle}${todayBorder}">
               <span class="roster-cell-label">${c.label}${c.manual?'<span style="font-size:7px;vertical-align:super;">✎</span>':''}</span>
             </td>`;
           });
