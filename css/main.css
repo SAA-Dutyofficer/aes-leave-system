@@ -575,3 +575,7 @@ select { cursor:pointer; }
 .lb-onetag  { font-size:10px; color:var(--danger); font-weight:600; margin-top:2px; }
 .lb-bar-wrap { height:3px; background:var(--gray-200); border-radius:999px; margin-top:6px; overflow:hidden; }
 .lb-bar { height:100%; background:var(--primary,#1a56db); border-radius:999px; }
+
+/* Danger small button */
+.btn-danger-sm { padding:7px 14px; background:var(--danger); color:white; border:none; border-radius:var(--radius-sm); font-size:12px; font-weight:600; cursor:pointer; font-family:'Inter',sans-serif; }
+.btn-danger-sm:hover { background:#b91c1c; }
