@@ -402,6 +402,24 @@ window.applyGroupPattern = async (groupId) => {
   document.getElementById(id)?.addEventListener("click",()=>document.getElementById("groupSetupModal").style.display="none")
 );
 
+// ── Reissue Roster — clears all manual overrides for current month ─
+window.reissueRoster = async () => {
+  const monthLabel = new Date(currentYear, currentMonth, 1).toLocaleDateString("en-GB",{month:"long",year:"numeric"});
+  if (!confirm(`Reissue roster for ${monthLabel}?\n\nThis will DELETE all manual cell changes for this month and regenerate from group patterns. This cannot be undone.`)) return;
+
+  const key = rosterKey(currentYear, currentMonth);
+  try {
+    // Delete all employee roster documents for this month
+    const snap = await getDocs(collection(db,`rosterData/${key}/entries`));
+    const batch = writeBatch(db);
+    snap.docs.forEach(d => batch.delete(d.ref));
+    await batch.commit();
+    rosterData[key] = {};
+    loadRosterMonth();
+    toast(`✅ Roster reissued for ${monthLabel} — all manual changes cleared.`);
+  } catch(err) { toast("Error: "+err.message,"error"); }
+};
+
 // ── Generate Next Month ────────────────────────────────────────────
 window.generateNextMonth = async () => {
   const nextM = currentMonth===11 ? 0 : currentMonth+1;
