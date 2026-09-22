@@ -155,7 +155,7 @@ function renderRoster() {
       <tr>
         <th class="roster-name-col">Employee</th>
         <th class="roster-group-col">Group</th>
-        ${dateHeaders.map(h=>`<th class="roster-day-hdr ${h.isWeekend?"rd-weekend-hdr":""}">${h.d}<br/><span class="roster-wd">${h.wdLabel}</span></th>`).join("")}
+        ${dateHeaders.map(h=>`<th class="roster-day-hdr${h.isWeekend?" wk-col":""}">${h.d}<br/><span class="roster-wd">${h.wdLabel}</span></th>`).join("")}
       </tr>
     </thead>
     <tbody>`;
@@ -178,8 +178,9 @@ function renderRoster() {
       dateHeaders.forEach(({ d, ds, isWeekend }) => {
         const cell = getCellData(emp, ds, d, empRoster, isWeekend);
         const canEdit = ["fire_admin","section_head","director","superadmin"].includes(MGR.role);
-        const style = getCellStyle(cell.type, isWeekend);
-        html += `<td class="roster-cell" style="${style}"
+        const isWkOff = isWeekend&&(cell.type==="O"||cell.type==="?"||!getCellStyleDirect(cell.type));
+        const style = isWkOff ? "" : (getCellStyleDirect(cell.type)||"background:#f1f5f9;color:#94a3b8;");
+        html += `<td class="roster-cell${isWeekend?" wk-col":""}" style="${style}"
           ${canEdit?`onclick="openCellEditor('${emp.id}','${ds}','${emp.name}','${cell.type}')"`:""} 
           title="${emp.name} · ${ds}">
           <span class="roster-cell-label">${cell.label}</span>
@@ -236,6 +237,32 @@ function getCellData(emp, ds, dayNum, empRoster, isWeekend) {
   const type = patDef.days[pos] || "O";
 
   return { type, label:DAY_LABELS[type]||type, cls:DAY_CLASSES[type]||"rd-off" };
+}
+
+// ── Direct style lookup — no weekend handling (CSS class handles that) ─
+function getCellStyleDirect(type) {
+  const S = {
+    D:    "background:#dbeafe;color:#1e40af;font-weight:700;",
+    N:    "background:#ede9fe;color:#5b21b6;font-weight:700;",
+    "48": "background:#c7d7fe;color:#1e3a8a;font-weight:700;",
+    W:    "background:#d1fae5;color:#065f46;font-weight:600;",
+    O:    "background:#e2e8f0;color:#64748b;font-weight:500;",
+    AL:   "background:#fee2e2;color:#991b1b;font-weight:700;",
+    SL:   "background:#fef3c7;color:#92400e;font-weight:700;",
+    UL:   "background:#f3f4f6;color:#374151;font-weight:700;",
+    CL:   "background:#fce7f3;color:#9d174d;font-weight:700;",
+    EL:   "background:#fff7ed;color:#c2410c;font-weight:700;",
+    PL:   "background:#ecfdf5;color:#065f46;font-weight:700;",
+    HL2:  "background:#fdf4ff;color:#7e22ce;font-weight:700;",
+    ST:   "background:#eff6ff;color:#1d4ed8;font-weight:700;",
+    FA:   "background:#fdf4ff;color:#7e22ce;font-weight:700;",
+    NS:   "background:#f0f9ff;color:#0369a1;font-weight:700;",
+    EX:   "background:#f0fdf4;color:#15803d;font-weight:700;",
+    HL:   "background:#fef9c3;color:#854d0e;font-weight:700;",
+    SWAP: "background:#fce7f3;color:#9d174d;font-weight:700;",
+    "?":  "background:#f1f5f9;color:#94a3b8;",
+  };
+  return S[type]||"";
 }
 
 // ── Cell style lookup — keyed by TYPE code not CSS class ──────────
