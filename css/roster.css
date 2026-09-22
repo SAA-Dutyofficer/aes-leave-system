@@ -90,8 +90,11 @@
 .rd-unknown  { background:#f1f5f9; color:#94a3b8; }
 
 /* Weekend columns — wk-col class with !important beats all inline styles */
-.roster-table td.wk-col { background:#c8d3e6 !important; color:#475569 !important; }
-.roster-table th.wk-col { background:rgba(255,255,255,.2) !important; color:rgba(255,255,255,.8) !important; }
+.roster-table td.wk-col,
+.roster-table tbody tr td.wk-col,
+table.roster-table td.wk-col { background:#c8d3e6 !important; color:#475569 !important; }
+.roster-table th.wk-col,
+table.roster-table thead th.wk-col { background:rgba(255,255,255,.2) !important; color:rgba(255,255,255,.8) !important; }
 
 /* ── Swap cards ─────────────────────────────────────────────────── */
 .swap-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; }
