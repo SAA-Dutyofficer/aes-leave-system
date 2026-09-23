@@ -6,6 +6,7 @@
       ".firebaserc",
       ".github/**"
     ],
+    "cleanUrls": true,
     "headers": [
       {
         "source": "**/*.js",
