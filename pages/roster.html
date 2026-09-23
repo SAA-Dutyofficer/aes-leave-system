@@ -220,7 +220,6 @@
 
   <div id="toastWrap" class="toast-wrap"></div>
 
-  <!-- Print styles inline -->
   <style>
     @media print {
       .mgr-sidebar, .roster-header-right, .roster-tabs, .roster-legend,
@@ -228,6 +227,16 @@
       .mgr-main { margin-left:0!important; padding:0!important; }
       .roster-table { font-size:9px; }
       .roster-cell { min-width:20px!important; padding:2px!important; }
+    }
+    /* Force weekend header visibility regardless of cache */
+    .roster-table thead th.wk-col {
+      background:rgba(255,255,255,.25) !important;
+      color:rgba(255,255,255,.85) !important;
+      opacity:1 !important;
+    }
+    .roster-table td.wk-col {
+      background:#c8d3e6 !important;
+      color:#475569 !important;
     }
   </style>
 
