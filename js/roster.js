@@ -170,7 +170,7 @@ function renderRoster() {
       <tr>
         <th class="roster-name-col">Employee</th>
         <th class="roster-group-col">Group</th>
-        ${dateHeaders.map(h=>`<th class="roster-day-hdr${h.isWeekend?" wk-col":""}">${h.d}<br/><span class="roster-wd">${h.wdLabel}</span></th>`).join("")}
+        ${dateHeaders.map(h=>`<th class="roster-day-hdr${h.isWeekend?" wk-col":""}" ${h.isWeekend?'style="background:rgba(255,255,255,.25);color:rgba(255,255,255,.85);"':''}>${h.d}<br/><span class="roster-wd">${h.wdLabel}</span></th>`).join("")}
       </tr>
     </thead>
     <tbody>`;
