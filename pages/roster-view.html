@@ -10,8 +10,12 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
   <style>
     /* Weekend fix — CSS class !important beats inline styles and table background */
-    .roster-table th.wk-col { background:rgba(255,255,255,.2) !important; }
-    .roster-table td.wk-col { background:#c8d3e6 !important; }
+    .roster-table th.wk-col {
+      background:rgba(255,255,255,.25) !important;
+      color:rgba(255,255,255,.85) !important;
+      opacity:1 !important;
+    }
+    .roster-table td.wk-col { background:#c8d3e6 !important; color:#475569 !important; }
   </style>
 </head>
 <body class="staff-body">
@@ -210,7 +214,7 @@
       const groups=[...new Set(emps.map(e=>e.groupId||"Unassigned"))];
       let html=`<div class="roster-table-wrap"><table class="roster-table"><thead><tr>
         <th class="roster-name-col">Employee</th>
-        ${hdrs.map(h=>`<th class="roster-day-hdr${h.isWeekend?" wk-col":""}${h.isToday?" roster-today-hdr":""}">${h.d}<br/><span class="roster-wd">${h.wdL}</span></th>`).join("")}
+        ${hdrs.map(h=>`<th class="roster-day-hdr${h.isWeekend?" wk-col":""}${h.isToday?" roster-today-hdr":""}" ${h.isWeekend?'style="background:rgba(255,255,255,.25);color:rgba(255,255,255,.85);"':''} >${h.d}<br/><span class="roster-wd">${h.wdL}</span></th>`).join("")}
       </tr></thead><tbody>`;
 
       groups.forEach(grp=>{
