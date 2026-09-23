@@ -41,7 +41,7 @@
 
 .roster-day-hdr { min-width:32px; }
 .roster-day-hdr.rd-weekend-hdr { background:rgba(255,255,255,.25); color:rgba(255,255,255,.85); }
-.roster-table th.wk-col { background:rgba(255,255,255,.25) !important; color:rgba(255,255,255,.85) !important; }
+.roster-table th.wk-col { background:#4a6fa5 !important; color:#ffffff !important; }
 .roster-wd { font-size:9px; opacity:.6; display:block; }
 
 .roster-group-row td { background:var(--gray-50); }
@@ -95,7 +95,7 @@
 .roster-table tbody tr td.wk-col,
 table.roster-table td.wk-col { background:#c8d3e6 !important; color:#475569 !important; }
 .roster-table th.wk-col,
-table.roster-table thead th.wk-col { background:rgba(255,255,255,.25) !important; color:rgba(255,255,255,.85) !important; }
+table.roster-table thead th.wk-col { background:#4a6fa5 !important; color:#ffffff !important; }
 
 /* ── Swap cards ─────────────────────────────────────────────────── */
 .swap-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; }
