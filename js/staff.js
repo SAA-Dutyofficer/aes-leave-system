@@ -254,7 +254,11 @@ function buildMonth(year, month, approvedDates, pendingDates, isShift) {
     if (isToday)     cls += " cal-today";
     if (!isPast && !isApproved && isWorkDay) cls += " cal-clickable";
 
-    html += `<div class="${cls}" onclick="calClick('${ds}')" title="${ds}">${d}</div>`;
+    // Inline style for weekends so browser cache can't hide them
+    const wkStyle = (!isPast && !isApproved && !isPending && !isStart && !isEnd && !inRange && (wd===0||wd===5||wd===6))
+      ? ' style="background:#e2e8f0;color:#94a3b8;"' : '';
+
+    html += `<div class="${cls}"${wkStyle} onclick="calClick('${ds}')" title="${ds}">${d}</div>`;
   }
   html += `</div></div>`;
   return html;
