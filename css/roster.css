@@ -40,11 +40,12 @@
 .roster-table thead th:nth-child(2) { min-width:80px; }
 
 .roster-day-hdr { min-width:32px; }
-.roster-day-hdr.rd-weekend-hdr { background:rgba(255,255,255,.05); }
+.roster-day-hdr.rd-weekend-hdr { background:rgba(255,255,255,.15); color:rgba(255,255,255,.7); }
+.roster-table th.wk-col { background:rgba(255,255,255,.15) !important; color:rgba(255,255,255,.7) !important; }
 .roster-wd { font-size:9px; opacity:.6; display:block; }
 
 .roster-group-row td { background:var(--gray-50); }
-.roster-group-hdr { padding:8px 12px; font-size:11px; font-weight:700; color:var(--gray-500); text-transform:uppercase; letter-spacing:.8px; border-bottom:1px solid var(--gray-200); }
+.roster-group-hdr { padding:8px 12px; font-size:11px; font-weight:700; color:var(--gray-500); text-transform:uppercase; letter-spacing:.8px; border-bottom:1px solid var(--gray-200); position:sticky; left:0; }
 
 .roster-emp-row:hover td { background:#f8fafc; }
 .roster-emp-row td { border-bottom:1px solid var(--gray-100); }
